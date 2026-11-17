@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#0d1438">
 <!-- 브라우저 다크 모드가 색을 강제로 바꾸지 않도록: "이 페이지는 어두운 테마를 스스로 처리함"이라고 알려 줌
      (실제 색은 아래 CSS에서 모두 직접 정해 두어서, 다크 모드에서도 밝은 모드와 똑같이 보임) -->
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="only dark">
 <meta name="darkreader-lock">
 <title>2026 동해중앙초 6학년의 눈꽃마을 시간여행</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +23,10 @@
 }
 /* 다크 모드 대응: 문서는 "밝게/어둡게 둘 다 지원"이라고 알려 브라우저의 강제 어둡게 바꾸기를 끄고,
    실제 모든 요소(버튼·입력칸·스크롤바 포함)는 항상 밝은 모습으로 그림 */
-:root{color-scheme:light dark;background:#3d4a8a}
+/* 크롬 '웹사이트 어둡게'는 페이지가 밝으면(태블릿이 밝은 테마여도) 색을 강제로 뒤집음.
+   → 페이지 바깥 틀(html)은 항상 '이미 어두운 페이지'로 표시해 강제 변환을 끄고,
+     실제 화면 요소(body 안)는 모두 밝은 모습으로 그림 */
+:root{color-scheme:only dark;background:#3d4a8a}
 body,body *{color-scheme:only light}
 /* 어두운 테마에서도 똑같은 색 (브라우저에 "어두운 테마를 이미 지원함"을 알려 강제 변환을 막음) */
 @media (prefers-color-scheme: dark){
