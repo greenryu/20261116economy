@@ -466,6 +466,7 @@ svg.won{width:1em;height:1em;display:inline-block;vertical-align:-.14em}
 .panel-head{padding:7px 16px;gap:10px}
 .panel-head h2{font-size:clamp(17px,2.1vw,23px)}
 .host{width:48px;height:48px;font-size:30px}
+.host.monkey{width:60px;height:60px;font-size:42px}   /* 놀이동산 몽키 매니저는 조금 크게 */
 .closeX{width:34px;height:34px;flex-shrink:0}
 .panel-body{padding:10px 18px 14px}
 .bubble{padding:12px 18px;min-height:84px;font-size:clamp(15px,1.8vw,19px);line-height:1.55}
@@ -2306,7 +2307,7 @@ const BANK_SVG=`<svg class="banksvg" viewBox="0 0 100 92" aria-hidden="true">
 </svg>`;
 function parkOpen(){ return !S.creditDown; }   // 놀이동산은 언제든지 들어갈 수 있음 (단, 신용도가 떨어지면 출입 금지)
 const PARK_BAN_MSG='🎡 신용도가 떨어져서 놀이동산에 들어갈 수 없어요! 🐷 눈꽃 은행에서 빚을 갚으면 다시 들어갈 수 있어요.';
-function parkHead(sub,back){ return `<div class="panel-head"><div class="host">${emo('🐵')}</div><h2>🎡 눈꽃 놀이동산<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="pkCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openPark()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
+function parkHead(sub,back){ return `<div class="panel-head"><div class="host monkey">${emo('🐵')}</div><h2>🎡 눈꽃 놀이동산<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="pkCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openPark()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
 function parkCoins(n,el){ addCoins(n); const c=$('pkCoin'); if(c) c.textContent=S.coins; if(el){ const [x,y]=elCenter(el); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${n} 🌰`,'#fff6a8'); } sfx('coin'); }
 function openPark(){
   if(!parkOpen()){ sfx('locked'); closeModal(); toast(PARK_BAN_MSG); return; }   // 신용도 하락 → 출입 금지
