@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="눈꽃마을">
 <meta name="theme-color" content="#0d1438">
+<!-- 브라우저 다크 모드가 색을 강제로 바꾸지 않도록: "이 페이지는 어두운 테마를 스스로 처리함"이라고 알려 줌
+     (실제 색은 아래 CSS에서 모두 직접 정해 두어서, 다크 모드에서도 밝은 모드와 똑같이 보임) -->
+<meta name="color-scheme" content="light dark">
+<meta name="darkreader-lock">
 <title>2026 동해중앙초 6학년의 눈꽃마을 시간여행</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -17,6 +21,10 @@
   --wood:#c4935f; --wood-d:#8a5f3b; --cream:#fffaf0; --cream2:#fff1d6; --green:#5bb873; --green-d:#3f8f55;
   --red:#e3605b; --red-d:#b8433f; --ink:#5a4632; --blue:#6aa9e0; --gold:#f5c542; --mint:#7fd3c4;
 }
+/* 다크 모드 대응: 문서는 "밝게/어둡게 둘 다 지원"이라고 알려 브라우저의 강제 어둡게 바꾸기를 끄고,
+   실제 모든 요소(버튼·입력칸·스크롤바 포함)는 항상 밝은 모습으로 그림 */
+:root{color-scheme:light dark;background:#3d4a8a}
+body,body *{color-scheme:light}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Gowun Dodum','Malgun Gothic',sans-serif;color:var(--ink);background:#3d4a8a;user-select:none;-webkit-user-select:none}
@@ -264,7 +272,8 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 .animals{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0 14px}
 .animals button{font-size:38px;width:62px;height:62px;border-radius:18px;background:#fff;box-shadow:0 4px 0 #d8c3a1}
 .animals button.sel{background:#fff2b8;outline:4px solid var(--gold)}
-.nameinput{font-family:'Jua';font-size:20px;padding:10px 16px;border-radius:999px;border:3px solid #e2cfae;text-align:center;width:min(300px,90%);outline:none;background:#fff}
+.nameinput{font-family:'Jua';font-size:20px;padding:10px 16px;border-radius:999px;border:3px solid #e2cfae;text-align:center;width:min(300px,90%);outline:none;background:#fff;color:#5a4632;-webkit-text-fill-color:#5a4632}
+.nameinput::placeholder{color:#a9a9a9;-webkit-text-fill-color:#a9a9a9;opacity:1}
 .nameinput:focus{border-color:var(--gold)}
 
 /* 시작 화면: 스크롤 없이 한 화면에 (화면 높이에 맞춰 크기 조절) */
