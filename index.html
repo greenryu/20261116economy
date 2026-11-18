@@ -472,6 +472,14 @@ svg.won{width:1em;height:1em;display:inline-block;vertical-align:-.14em}
 @media (max-width:420px){.parkmenu{grid-template-columns:1fr}}
 .parkmenu .gcard:last-child:nth-child(odd){grid-column:1/-1;width:calc(50% - 7px);justify-self:center}   /* 홀수 개면 마지막 카드는 가운데 */
 .parkmenu .gcard{padding:10px 12px}.parkmenu .gcard .gi{font-size:40px}.parkmenu .gcard .gn{font-size:19px;margin:3px 0 2px}.parkmenu .gcard .gd{font-size:13px}
+/* 🎮 눈꽃 핀볼 */
+.pbwrap{display:flex;gap:14px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.pbside{display:flex;flex-direction:column;gap:8px;min-width:150px}
+.pbmain{display:flex;flex-direction:column;align-items:center;gap:8px}
+#pbcv{border-radius:16px;box-shadow:0 5px 0 #b9c6dd;touch-action:none;background:#1d2752}
+.pbpad{display:flex;gap:8px}
+.pbpad button{font-family:'Jua';font-size:16px;padding:10px 16px;border-radius:14px;background:#fff;box-shadow:0 4px 0 #d8c3a1;touch-action:none;user-select:none;-webkit-user-select:none}
+.pbpad #pbGo{background:var(--gold);color:#5a4210}
 /* 🔔 눈꽃 종치기 */
 .bellbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
 .belltable{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"a b" "c d";gap:10px;max-width:640px;margin:0 auto;align-items:center}
@@ -2546,9 +2554,10 @@ function openPark(){
       <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰1000 · 10분에 5번</div></div>
       <div class="gcard" data-g="cards"><div class="gi">🃏</div><div class="gn">겨울 카드 뒤집기</div><div class="gd">카드를 두 장씩 뒤집어 눈사람, 트리, 썰매 같은 같은 겨울 그림 짝을 찾아요!</div><div class="gr">완성하면 🌰10~20</div></div>
       <div class="gcard" data-g="puzzle"><div class="gi">🧩</div><div class="gn">동해 풍경 퍼즐</div><div class="gd">추암 촛대바위, 무릉계곡 같은 우리 동해시의 아름다운 풍경 사진 퍼즐을 맞춰요!</div><div class="gr">완성하면 🌰10~30</div></div>
-      <div class="gcard" data-g="bell"><div class="gi">🔔</div><div class="gn">눈꽃 종치기</div><div class="gd">펼쳐진 카드에 같은 그림이 딱 5개가 되면 친구들보다 먼저 종을 쳐요!</div><div class="gr">최대 🌰30</div></div>
+      <div class="gcard" data-g="bell"><div class="gi">🔔</div><div class="gn">눈꽃 종치기</div><div class="gd">펼쳐진 카드에 같은 그림이 딱 5개가 되면 친구들보다 먼저 종을 쳐요!</div><div class="gr">종 1번에 🌰150 · 최대 🌰2000</div></div>
+      <div class="gcard" data-g="pinball"><div class="gi">🎮</div><div class="gn">눈꽃 핀볼</div><div class="gd">플리퍼로 공을 쳐 올려 눈사람·트리·도토리 범퍼를 맞혀요! 공은 3개예요.</div><div class="gr">200점마다 🌰1 (최대 30)</div></div>
     </div></div>`);
-  document.querySelectorAll('.gcard').forEach(c=>c.onclick=()=>{ sfx('click'); ({block:startBlocks,wheel:startWheel,cards:startCards,puzzle:startPuzzle,bell:startBell})[c.dataset.g](); });
+  document.querySelectorAll('.gcard').forEach(c=>c.onclick=()=>{ sfx('click'); ({block:startBlocks,wheel:startWheel,cards:startCards,puzzle:startPuzzle,bell:startBell,pinball:startPinball})[c.dataset.g](); });
 }
 
 /* ---------- 🧱 눈꽃 블록 쌓기 ---------- */
@@ -2813,6 +2822,8 @@ function playPuzzle(pi,n){
    친구들도 조금 늦게 종을 쳐요. 맞게 치면 +1, 5개가 아닐 때 치면 -1. 카드 30장 · 점점 빨라짐. */
 const BELL_PICS=['🌰','⛄','🎄','🎁'];
 const BELL_RIVALS=[{em:'🐵',name:'몽키'},{em:'🐷',name:'꿀꿀이'}];
+// 친구들 반응 속도(초)와 놓치는 확률 — 사람처럼 들쭉날쭉
+const BELL_RIVAL_SPEED=[null,{min:1.2,max:2.3,miss:.25},{min:1.5,max:2.8,miss:.33}];
 function startBell(){
   const TOTAL=30;
   const slots=[null,null,null];          // 0: 나, 1: 몽키, 2: 꿀꿀이 — 맨 위에 펼쳐진 카드
@@ -2846,10 +2857,17 @@ function startBell(){
     slots[turn]=c; flips++; turn=(turn+1)%3; sfx('blip');
     const seat=$('bs'+((turn+2)%3)); if(seat){ seat.classList.remove('flipped'); void seat.offsetWidth; seat.classList.add('flipped'); }
     draw(); ready=true; clearCpu();
-    if(isFive()){   // 친구들도 종을 치려고 해요 (반응 시간 1.0~2.0초, 점점 빨라짐)
-      [1,2].forEach(r=>cpuT.push(setTimeout(()=>ring(r), Math.max(650,(1000+Math.random()*1000)-flips*12))));
+    if(isFive()){
+      // 친구들도 사람처럼: 반응 시간이 들쭉날쭉하고, 가끔 못 보고 지나쳐요 (꿀꿀이는 몽키보다 조금 느긋)
+      [1,2].forEach(r=>{ const P=BELL_RIVAL_SPEED[r]; if(Math.random()<P.miss) return;
+        const d=(P.min+Math.random()*(P.max-P.min))*1000 - Math.min(300,flips*8);
+        cpuT.push(setTimeout(()=>ring(r), d)); });
+      flipT=setTimeout(flip, Math.max(speed(), 2900));   // 5개가 나오면 찾을 시간을 조금 더 줘요
+    } else {
+      // 아주 가끔은 친구가 착각해서 잘못 쳐요
+      if(Math.random()<.05){ const r=1+Math.floor(Math.random()*2); cpuT.push(setTimeout(()=>ring(r), 700+Math.random()*700)); }
+      flipT=setTimeout(flip, speed());
     }
-    flipT=setTimeout(flip, speed());
   }
   function ring(who){
     if(over||!ready||performance.now()<lockUntil) return;
@@ -2866,16 +2884,19 @@ function startBell(){
     } else if(who===0){
       wrong++; score[0]=Math.max(0,score[0]-1); sfx('wrong'); lockUntil=performance.now()+500;
       msg('😵 앗, 딱 5개인 그림이 없어요! -1','bad'); draw();
+    } else {
+      score[who]=Math.max(0,score[who]-1); sfx('pop');
+      msg(`😅 ${BELL_RIVALS[who-1].em} ${BELL_RIVALS[who-1].name}가 착각해서 잘못 쳤어요! -1`,'good'); draw();
     }
   }
   function end(){
     over=true; clearTimeout(flipT); clearCpu();
     const best=Math.max(score[1],score[2]), win=score[0]>best;
-    const reward=Math.min(30, score[0]*3 + (win?6:0));
+    const reward=Math.min(2000, score[0]*150 + (win?500:0));   // 맞게 친 종 1번 = 🌰150, 1등 보너스 🌰500 · 최대 2000
     $('blEnd').innerHTML=`<div class="cdone"><div class="feedback ${win?'good':'bad'}" style="text-align:center;margin:0">
       <div class="big">${win?'🏆 내가 1등!':score[0]===best?'🤝 비겼어요!':'😅 아쉽게 졌어요!'}</div>
       나 ${score[0]}점 · 🐵 몽키 ${score[1]}점 · 🐷 꿀꿀이 ${score[2]}점${wrong?` · 잘못 친 종 ${wrong}번`:''}<br>
-      도토리 <b>🌰 ${reward}</b> 받았어요!${win?' (1등 보너스 포함)':''}
+      도토리 <b>🌰 ${reward}</b> 받았어요! (종 1번에 🌰150${win?' + 1등 보너스 🌰500':''})
       <div class="rowbtns"><button class="btn green" id="blAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div></div></div>`;
     if(reward) parkCoins(reward,$('blEnd')); if(win) confetti(60); else sfx('pop');
     $('blAgain').onclick=startBell;
@@ -2885,6 +2906,94 @@ function startBell(){
   addEventListener('keydown',onKey,true);
   parkCleanup=()=>{ over=true; clearTimeout(flipT); clearCpu(); removeEventListener('keydown',onKey,true); };
   draw(); flipT=setTimeout(flip,1200);
+}
+
+/* ---------- 🎮 눈꽃 핀볼 ----------
+   ←/→ (또는 A·L, 화면 버튼)으로 플리퍼, 스페이스(🚀)로 발사. 범퍼에 맞으면 점수. 공 3개. */
+function startPinball(){
+  const W=360, H=560, R=8, G=820, MAXV=1150;
+  openModal(parkHead('눈꽃 핀볼',true)+`<div class="panel-body"><div class="pbwrap">
+    <div class="pbside">
+      <div class="gstat">점수 <b id="pbScore">0</b></div>
+      <div class="gstat">남은 공 <b id="pbBalls">3</b></div>
+      <div class="gstat" style="font-size:13px;font-family:'Gowun Dodum'">⬅ / A : 왼쪽 플리퍼<br>➡ / L : 오른쪽 플리퍼<br>스페이스 : 공 발사</div>
+      <div class="gstat" style="font-size:13px;font-family:'Gowun Dodum'">⛄ 🎄 범퍼 100점<br>🌰 범퍼 150점 · ❄️ 300점</div>
+    </div>
+    <div class="pbmain"><canvas id="pbcv"></canvas>
+      <div class="pbpad"><button id="pbL">◀ 왼쪽</button><button id="pbGo">🚀 발사</button><button id="pbR">오른쪽 ▶</button></div></div>
+  </div><div id="pbEnd"></div></div>`,'wide');
+  const cv=$('pbcv'), g=cv.getContext('2d');
+  const dispH=Math.max(330,Math.min(560,(innerHeight||800)-250)), dispW=dispH*W/H, dpr=Math.min(2,devicePixelRatio||1);
+  cv.style.width=dispW+'px'; cv.style.height=dispH+'px'; cv.width=W*dpr; cv.height=H*dpr; g.setTransform(dpr,0,0,dpr,0,0);
+  // 벽(선분들): 바깥 테두리 · 위 모서리 · 아래 안내 경사로
+  const walls=[[20,560,20,90],[20,90,90,20],[90,20,270,20],[270,20,340,90],[340,90,340,560],
+    [20,420,118,486],[340,420,242,486],[20,300,52,330],[340,300,308,330]];
+  const bumpers=[{x:110,y:170,r:24,em:'⛄',pts:100},{x:250,y:170,r:24,em:'🎄',pts:100},{x:180,y:255,r:26,em:'🌰',pts:150},{x:180,y:115,r:15,em:'❄️',pts:300}];
+  const mkFlip=(px,py,rest,up)=>({px,py,L:56,rest,up,a:rest,prev:rest,on:false});
+  const flips=[mkFlip(118,486,.5,-.5), mkFlip(242,486,Math.PI-.5,Math.PI+.5)];
+  let ball=null, score=0, balls=3, over=false, raf=0, last=performance.now(), waiting=true;
+  const keysDown={L:false,R:false};
+  function launch(){ if(over||ball) return; ball={x:180+rnd(-60,60),y:60,vx:rnd(-160,160),vy:rnd(40,120)}; waiting=false; sfx('pop'); }
+  function hud(){ $('pbScore').textContent=score; $('pbBalls').textContent=balls; }
+  function collideSeg(x1,y1,x2,y2,e,vx0,vy0){   // 공과 선분 충돌 (vx0,vy0: 선분 위 그 점의 속도)
+    const dx=x2-x1, dy=y2-y1, l2=dx*dx+dy*dy; let t=((ball.x-x1)*dx+(ball.y-y1)*dy)/l2; t=Math.max(0,Math.min(1,t));
+    const cx=x1+dx*t, cy=y1+dy*t, ox=ball.x-cx, oy=ball.y-cy, d=Math.hypot(ox,oy);
+    if(d>=R+3||d===0) return false;
+    const nx=ox/d, ny=oy/d; ball.x=cx+nx*(R+3); ball.y=cy+ny*(R+3);
+    const svx=vx0?vx0(t):0, svy=vy0?vy0(t):0, rvx=ball.vx-svx, rvy=ball.vy-svy, vn=rvx*nx+rvy*ny;
+    if(vn<0){ ball.vx=svx+rvx-(1+e)*vn*nx; ball.vy=svy+rvy-(1+e)*vn*ny; }
+    return true;
+  }
+  function step(dt){
+    // 플리퍼 움직이기
+    flips.forEach((f,i)=>{ f.prev=f.a; const target=(i?keysDown.R:keysDown.L)?f.up:f.rest, sp=22*dt; f.a+= Math.sign(target-f.a)*Math.min(Math.abs(target-f.a),sp); });
+    if(!ball) return;
+    ball.vy+=G*dt; ball.x+=ball.vx*dt; ball.y+=ball.vy*dt;
+    walls.forEach(w=>collideSeg(w[0],w[1],w[2],w[3],.45));
+    flips.forEach(f=>{ const tx=f.px+Math.cos(f.a)*f.L, ty=f.py+Math.sin(f.a)*f.L, w=(f.a-f.prev)/dt;   // 각속도
+      const vx0=t=>-w*Math.sin(f.a)*f.L*t, vy0=t=>w*Math.cos(f.a)*f.L*t;
+      if(collideSeg(f.px,f.py,tx,ty,.3,vx0,vy0) && Math.abs(w)>3) sfx('click'); });
+    bumpers.forEach(b=>{ const ox=ball.x-b.x, oy=ball.y-b.y, d=Math.hypot(ox,oy);
+      if(d<b.r+R && d>0){ const nx=ox/d, ny=oy/d; ball.x=b.x+nx*(b.r+R+.5); ball.y=b.y+ny*(b.r+R+.5);
+        const vn=ball.vx*nx+ball.vy*ny; ball.vx-=2*vn*nx; ball.vy-=2*vn*ny;
+        const sp=Math.max(520,Math.hypot(ball.vx,ball.vy)*1.05); const k=sp/Math.hypot(ball.vx,ball.vy); ball.vx*=k; ball.vy*=k;
+        score+=b.pts; b.flash=.18; hud(); sfx(b.pts>=300?'bell':'pop'); } });
+    const sp=Math.hypot(ball.vx,ball.vy); if(sp>MAXV){ ball.vx*=MAXV/sp; ball.vy*=MAXV/sp; }
+    if(ball.y>H+20){ ball=null; balls--; hud(); sfx('wrong');
+      if(balls<=0) end(); else { waiting=true; setTimeout(()=>{ if(!over&&!ball&&waiting) launch(); },1400); } }
+  }
+  function draw(){
+    const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#1d2752'); bg.addColorStop(1,'#3a4a8a'); g.fillStyle=bg; g.fillRect(0,0,W,H);
+    g.fillStyle='rgba(255,255,255,.5)'; for(let i=0;i<26;i++){ g.beginPath(); g.arc((i*97)%W,(i*53+performance.now()*.02*(1+i%3))%H,1.4,0,7); g.fill(); }   // 내리는 눈
+    g.strokeStyle='#e8f1ff'; g.lineWidth=6; g.lineCap='round'; walls.forEach(w=>{ g.beginPath(); g.moveTo(w[0],w[1]); g.lineTo(w[2],w[3]); g.stroke(); });
+    bumpers.forEach(b=>{ b.flash=Math.max(0,(b.flash||0)-1/60);
+      g.beginPath(); g.arc(b.x,b.y,b.r+(b.flash?4:0),0,7); g.fillStyle=b.flash?'#fff6c8':'#ffffff'; g.fill(); g.lineWidth=4; g.strokeStyle=b.flash?'#f5c542':'#9fc5f0'; g.stroke();
+      const im=EMO_IMG[b.em]; const s=b.r*1.5; if(im&&im.complete&&im.naturalWidth) g.drawImage(im,b.x-s*1.375/2,b.y-s*.78,s*1.375,s*1.331); });
+    flips.forEach(f=>{ g.strokeStyle='#ff6b6b'; g.lineWidth=13; g.beginPath(); g.moveTo(f.px,f.py); g.lineTo(f.px+Math.cos(f.a)*f.L,f.py+Math.sin(f.a)*f.L); g.stroke();
+      g.fillStyle='#fff'; g.beginPath(); g.arc(f.px,f.py,4,0,7); g.fill(); });
+    if(ball){ const gr=g.createRadialGradient(ball.x-3,ball.y-3,1,ball.x,ball.y,R); gr.addColorStop(0,'#ffffff'); gr.addColorStop(1,'#9aa8c8'); g.fillStyle=gr; g.beginPath(); g.arc(ball.x,ball.y,R,0,7); g.fill(); }
+    else if(!over){ g.fillStyle='#fff6c8'; g.font='18px Jua, sans-serif'; g.textAlign='center'; g.fillText(waiting&&balls===3&&score===0?'🚀 스페이스 또는 발사 버튼!':'다음 공 준비…',W/2,H/2+40); }
+  }
+  function loop(now){ const dt=Math.min(.033,(now-last)/1000); last=now; if(!over){ const n=6; for(let i=0;i<n;i++) step(dt/n); } draw(); raf=requestAnimationFrame(loop); }
+  function end(){
+    over=true; const reward=Math.min(30,Math.floor(score/200));
+    $('pbEnd').innerHTML=`<div class="cdone"><div class="feedback ${reward?'good':'bad'}" style="text-align:center;margin:0"><div class="big">🎮 게임 끝! ${score}점</div>
+      도토리 <b>🌰 ${reward}</b> 받았어요! (200점마다 🌰1)
+      <div class="rowbtns"><button class="btn green" id="pbAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div></div></div>`;
+    if(reward){ parkCoins(reward,$('pbEnd')); confetti(40); } else sfx('pop');
+    $('pbAgain').onclick=startPinball;
+  }
+  const setKey=(k,v)=>{ if(keysDown[k]!==v){ keysDown[k]=v; if(v) sfx('click'); } };
+  const onDown=e=>{ const k=e.key; if(['ArrowLeft','a','A','z','Z'].includes(k)){ setKey('L',true); e.preventDefault(); e.stopPropagation(); }
+    else if(['ArrowRight','l','L','/','m','M'].includes(k)){ setKey('R',true); e.preventDefault(); e.stopPropagation(); }
+    else if(k===' '||e.code==='Space'){ e.preventDefault(); e.stopPropagation(); if(!e.repeat) launch(); } };
+  const onUp=e=>{ const k=e.key; if(['ArrowLeft','a','A','z','Z'].includes(k)) setKey('L',false); if(['ArrowRight','l','L','/','m','M'].includes(k)) setKey('R',false); };
+  addEventListener('keydown',onDown,true); addEventListener('keyup',onUp,true);
+  const hold=(id,k)=>{ const b=$(id); b.onpointerdown=e=>{ e.preventDefault(); setKey(k,true); b.setPointerCapture&&b.setPointerCapture(e.pointerId); }; b.onpointerup=b.onpointercancel=()=>setKey(k,false); };
+  hold('pbL','L'); hold('pbR','R'); $('pbGo').onclick=launch;
+  parkCleanup=()=>{ over=true; cancelAnimationFrame(raf); removeEventListener('keydown',onDown,true); removeEventListener('keyup',onUp,true); };
+  hud(); raf=requestAnimationFrame(loop);
+  window.__pb={get ball(){return ball;}, get score(){return score;}, get balls(){return balls;}, get over(){return over;}, flips, launch, keysDown, step};   // (점검용)
 }
 
 /* =========================================================
@@ -3128,6 +3237,8 @@ function checkName(nm){
   if(!nm) return '마을 이름을 적어 주세요! 예) 그린이네, 햇살마을 ✏️';
   if(!/^[가-힣]+$/.test(nm)) return '마을 이름은 한글(완성된 글자)로만 적어 주세요! 🙂';
   if(nm.length>5) return '마을 이름은 5글자까지만 쓸 수 있어요!';
+  // 같은 글자 반복 금지: 같은 글자 3번 이상 연속(앙앙앙·하하하하) 또는 두 글자 묶음 반복(아잉아잉)
+  if(/(.)\1\1/.test(nm) || /(..)\1/.test(nm)) return '같은 글자를 반복하지 말고, 멋진 마을 이름을 지어 주세요! ✏️';
   const key=looseKey(nm);
   if(BAD_WORDS.some(w=>nm.includes(w)) || BAD_KEYS.some(b=>key.includes(b))) return '바르고 고운 말로 마을 이름을 지어 주세요! 💚';
   return '';
