@@ -191,6 +191,14 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 @keyframes blink{from{opacity:.25;transform:scale(.7)}to{opacity:1;transform:scale(1.2)}}
 .decor.tree .topstar{position:absolute;left:50%;top:-.28em;transform:translateX(-50%);font-size:.4em;animation:blink 1.2s infinite alternate;text-shadow:0 0 10px #ffe17a}
 .decor.gift .in{animation:hop 2s ease-in-out infinite}
+.decor.solar svg.solarsvg{display:block;width:1.25em;height:1.07em}
+.decor.solar .sellBub{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);white-space:nowrap;font-family:'Jua';font-size:clamp(12px,1.3vw,17px);background:var(--gold);color:#5a4210;border:3px solid #fff;border-radius:99px;padding:.25em .7em;box-shadow:0 3px 0 #c9962a,0 0 14px rgba(255,224,102,.9);animation:sellPulse 1s ease-in-out infinite alternate;cursor:pointer}
+@keyframes sellPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.1) translateY(-3px)}}
+.hbtn.solarbtn{position:absolute;left:12px;top:calc(100% + 4px);background:var(--gold);color:#5a4210;animation:sellGlow 1s ease-in-out infinite alternate}   /* 위쪽 메뉴 바로 아래에 떠 있어서 메뉴 줄이 밀리지 않음 */
+.hbtn.solarbtn small{font-size:.8em;margin-left:2px}
+@keyframes sellGlow{from{box-shadow:0 3px 0 #c9962a,0 0 0 rgba(255,224,102,0)}to{box-shadow:0 3px 0 #c9962a,0 0 16px rgba(255,224,102,1)}}
+.decor.solar .charge{position:absolute;left:18%;right:18%;bottom:-.16em;height:.11em;border-radius:99px;background:rgba(30,40,80,.35);overflow:hidden;box-shadow:0 0 0 .02em #fff}
+.decor.solar .charge i{display:block;height:100%;background:linear-gradient(90deg,#ffe066,#7fe08a);transition:width .9s linear}
 @keyframes hop{0%,80%,100%{transform:translateY(0)}88%{transform:translateY(-10px)}}
 /* 마을 펫 (고양이·강아지 친구들, 여러 마리가 함께 산책) */
 .pet{position:absolute;transform:translate(-50%,-100%);font-size:clamp(30px,3.8vw,48px);cursor:pointer;line-height:1}
@@ -719,6 +727,7 @@ img.emo{width:1.375em;height:1.331em;display:inline-block;vertical-align:-.251em
   <div class="pill" id="coinPill">🌰 <span id="coinNum">0</span></div>
   <div class="pill" id="progPill">🔑 <span id="progNum">0</span>/6</div>
   <div class="pill hidden" id="debtPill" title="눈꽃 은행에 갚을 도토리"><svg class="won" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="9" fill="#f5c542" stroke="#c9962a" stroke-width="1.5"/><path d="M-5.5 -4.5 L-3 4.5 L0 -2.5 L3 4.5 L5.5 -4.5" stroke="#7a5a12" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M-6.8 -0.8 H6.8 M-6.8 1.9 H6.8" stroke="#7a5a12" stroke-width="1.1" stroke-linecap="round"/></svg> 빚 <span id="debtNum">0</span></div>
+  <button class="hbtn solarbtn hidden" id="btnSolar" onclick="showReadySolar()">⚡ 전기가 만들어졌어요!</button>
   <div class="spacer"></div>
   <button class="hbtn" id="btnHome">🏡 처음으로</button>
   <button class="hbtn" id="btnRank">🏆 랭킹</button>
@@ -816,7 +825,7 @@ const STAGES = [
   ]
 },
 {
-  icon:'🏪', place:'시장 골목', topic:'경제 · 시장경제와 가계·기업', host:'🐰', hostName:'깡총이 토끼', pos:[50,76],
+  icon:'🏪', place:'시장 골목', topic:'경제 · 시장경제와 가계·기업', host:'🐰', hostName:'깡총이 토끼', pos:[50,73],
   intro:[
     '깡총깡총~ 어서 와요! 나는 시장 골목 상인 <b>깡총이</b>야. 우리나라 경제가 움직이는 방식, <b>시장경제</b>를 알려 줄게!',
     '<b>시장</b>은 물건이나 서비스를 사고파는 곳이야. 전통 시장뿐 아니라 온라인 쇼핑몰처럼 장소와 상관없이 거래가 이루어지면 모두 시장이란다.',
@@ -838,7 +847,7 @@ const STAGES = [
   ]
 },
 {
-  icon:'🏢', place:'착한 회사', topic:'경제 · 근로자 권리와 기업의 책임', host:'🐻', hostName:'곰돌 사장님', pos:[70,56],
+  icon:'🏢', place:'착한 회사', topic:'경제 · 근로자 권리와 기업의 책임', host:'🐻', hostName:'곰돌 사장님', pos:[70,59.5],
   intro:[
     '허허, 반가워요! 나는 <b>곰돌 사장</b>이에요. 우리 회사는 근로자 없이는 하루도 돌아가지 않아요. <b>근로자와 기업은 서로 의존하는 관계</b>랍니다.',
     '그래서 근로자의 <b>권리</b>를 지키는 게 중요해요. 우리나라는 <b>근로 기준법</b>, <b>최저 임금 제도</b>, <b>육아 휴직 제도</b>를 만들었고, 근로자는 <b>단체를 만들어 기업과 협의</b>할 수 있어요.',
@@ -908,12 +917,13 @@ const STAGES = [
   ]
 }];
 const BANK_STAGE=STAGES.findIndex(s=>s.bank);   // 6단계(눈꽃 은행) 번호
+// 받침에 따라 을/를, 이/가 고르기 (예: 광장을, 골목이, 회사를)
+const josa=(w,withB,noB)=>{ const c=String(w).charCodeAt(String(w).length-1); return (c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28)?withB:noB; };
 
 const ITEMS = [
   {id:'snowfall', em:'❄️', name:'함박눈 구름', price:30, kind:'sky', desc:'마을에 함박눈이 펑펑 내려요.'},
   {id:'cocoa',    em:'☕', name:'핫초코 한 잔', price:35, kind:'decor', desc:'캠핑장 테이블에 올려져요. 모락모락 김이 나고, 누르면 몸이 따뜻해져요.'},
   {id:'syrup',    em:'🧪', name:'마법 시럽', price:40, kind:'potion', desc:'퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요! (마시면 1병 사라져요)'},
-  {id:'crystal',  em:'❄️', name:'눈 결정 바람', price:45, kind:'sky', desc:'반짝이는 육각형 눈 결정이 빙글빙글 돌며 바람에 흩날려요.'},
   {id:'scarf',    em:'🧣', name:'빨간 목도리', price:40, kind:'wear', desc:'걸을 때마다 반짝이 발자국이 남아요.'},
   {id:'snowman',  em:'⛄', name:'눈사람', price:50, kind:'decor', desc:'씰룩씰룩! 누르면 눈뭉치가 팡 터져요.'},
   {id:'bell',     em:'🔔', name:'징글벨', price:50, kind:'sound', desc:'정답을 맞히면 딸랑딸랑 방울이 울려요.'},
@@ -930,13 +940,14 @@ const ITEMS = [
   {id:'dog_poodle', em:'', name:'푸들', price:100, kind:'pet', desc:'곱슬곱슬 푸들이 총총총 산책해요.'},
   {id:'dog_maltese',em:'', name:'말티즈', price:100, kind:'pet', desc:'분홍 리본을 단 하얀 말티즈가 따라다녀요.'},
   {id:'tree',     em:'🎄', name:'크리스마스 트리', price:40, kind:'decor', desc:'한 그루씩 살 수 있어요. 알록달록 전구가 깜빡이고 별이 빛나요.'},
+  {id:'solar',    em:'☀️', name:'태양광 발전기', price:150, kind:'decor', desc:'마을에 설치하면 햇빛으로 전기를 만들어요. 5분마다 전기가 다 만들어지면 ⚡ 전기 팔기 버튼을 눌러 1대에 도토리 🌰5를 벌어요! (3대까지)'},
   {id:'shooting', em:'🌠', name:'별똥별', price:120, kind:'sky', desc:'밤하늘에 별똥별이 슝~ 떨어져요.'},
   {id:'crown',    em:'👑', name:'눈꽃 왕관', price:150, kind:'wear', slot:'hat', desc:'머리 주위로 눈꽃이 빙글빙글 돌아요.'},
   {id:'aurora',   em:'🌌', name:'오로라 하늘', price:200, kind:'sky', desc:'하늘에 신비로운 오로라가 일렁여요.'},
   {id:'fireworks',em:'🎆', name:'불꽃놀이', price:250, kind:'sky', desc:'마을 하늘에 불꽃이 펑펑 터져요!'}
 ];
 // 아이템마다 최대로 살 수 있는 개수 (여기 없는 아이템은 1개)
-const MAX_QTY = {syrup:9, tree:9, snowman:5, gift:5, cocoa:4, lamp:4, fire:3};
+const MAX_QTY = {syrup:9, tree:9, snowman:5, gift:5, cocoa:4, lamp:4, fire:3, solar:3};
 const maxOf = it => MAX_QTY[it.id] || 1;
 // 보유 개수 (예전 저장 기록은 트리 3그루, 나머지 1개로 계산)
 function qty(id){ if(S.qty && S.qty[id]!=null) return S.qty[id]; return S.owned.includes(id) ? (id==='tree'?3:1) : 0; }
@@ -950,7 +961,7 @@ function defaultPos(id,n){
   const s=FREE_SPOTS[(h+n*5)%FREE_SPOTS.length]; return [Math.min(96,s[0]+(n%3)*1.5), s[1]];
 }
 // 장식 기본 위치 (% 좌표). {table:값}은 캠핑장 테이블 위 (-1 왼쪽 ~ 1 오른쪽)
-const DECOR_POS = {cocoa:{table:-.5}, lamp:{table:.5}, snowman:[31,80], gift:[60,91], fire:{spot:'tent'}, tree:[24,92], tree_1:[35,90], tree_2:[68,90]};
+const DECOR_POS = {cocoa:{table:-.5}, lamp:{table:.5}, snowman:[31,80], gift:[60,91], fire:{spot:'tent'}, tree:[24,92], tree_1:[35,90], tree_2:[68,90], solar:[41,63], solar_1:[60,64], solar_2:[93,66]};
 const CAMP = {tent:[88,51], table:[95,58], tentFront:[88,58.5]};
 const ANIMALS = ['🐰','🐻','🐱','🐶','🐼','🦊','🐧','🐹'];
 const ANIMAL_NAMES = {'🐰':'토끼','🐻':'곰','🐱':'고양이','🐶':'강아지','🐼':'판다','🦊':'여우','🐧':'펭귄','🐹':'햄스터'};
@@ -1174,6 +1185,8 @@ let S = freshState();
 function load(){ try{ const raw = localStorage.getItem(SAVE_KEY); if(raw){ const d = JSON.parse(raw); const s=Object.assign(freshState(), d);
   // 예전 저장 기록(장소 5개)에도 새 장소(6단계 눈꽃 은행) 칸을 붙여 줌
   if(!Array.isArray(s.stages)) s.stages=[]; while(s.stages.length<STAGES.length) s.stages.push({cleared:false,best:0,stars:0,perfectGiven:false});
+  // ❄️ '눈 결정 바람'은 상점에서 없어졌어요 → 이미 산 학생은 도토리 45개를 돌려받아요
+  if((s.owned||[]).includes('crystal')){ s.owned=s.owned.filter(x=>x!=='crystal'); s.equipped=(s.equipped||[]).filter(x=>x!=='crystal'); if(s.qty) delete s.qty.crystal; s.coins=(s.coins||0)+45; try{ localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }catch(e){} }   // 바로 저장 → 두 번 돌려받지 않게
   return s; } }catch(e){} return null; }
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} const st=document.getElementById('start'); if(typeof queueCoinSubmit==='function' && st && st.classList.contains('hidden')) queueCoinSubmit(); }
 const has = id => S.equipped.includes(id);
@@ -1461,7 +1474,6 @@ function frame(now){
   // emitters
   if(!LITE){
     // 눈 결정 바람: 왼쪽에서 바람을 타고 빙글빙글 날아오는 육각형 눈 결정
-    if(has('crystal')) every('crystal',260,()=>{ parts.push({kind:'crystal',x:rnd(-60,W*.7),y:rnd(-30,H*.6),vx:rnd(45,95),vy:rnd(18,45),g:0,life:rnd(7,10),max:9,size:rnd(5,12),rot:rnd(0,6),vr:rnd(-1.6,1.6),sway:rnd(0,6),tw:rnd(0,6)}); },now);
     const fireEl=document.querySelector('.decor[data-id=fire]');
     if(fireEl) every('ember',90,()=>{ const [x,y]=elCenter(fireEl,.3); parts.push({kind:'spark',x:x+rnd(-10,10),y,vx:rnd(-15,15),vy:rnd(-90,-50),g:-10,life:1.3,max:1.3,size:rnd(1.5,3),color:Math.random()<.5?'#ffb347':'#ffe066',rot:0,vr:0}); },now);
     const cocoaEl=document.querySelector('.decor[data-id=cocoa]');
@@ -1579,13 +1591,14 @@ function place(el,x,y){ el.style.left=x+'%'; el.style.top=y+'%'; el.style.zIndex
 })();
 (function makeRoads(){
   // 부드러운 곡선 마을길 (테두리 → 흙길 → 가운데 발자국 점선)
-  const main='M-3 86 C-0.3 84, 7.5 79, 13 74 C18.5 69, 23.8 55.7, 30 56 C36.2 56.3, 43.3 76, 50 76 C56.7 76, 63.8 56.3, 70 56 C76.2 55.7, 81.5 69, 87 74 C92.5 79, 100.3 84, 103 86';
-  const layers=[['#c4a77c',24,'',.75],['#efdfc0',18,'',1],['#ffffff',3.5,'1 13',.9]];
+  const main='M-3 86 C-0.3 84, 7.5 79, 13 74 C18.5 69, 23.8 55.7, 30 56 C36.2 56.3, 43.3 73, 50 73 C56.7 73, 63.8 59.8, 70 59.5 C76.2 59.2, 81.5 69, 87 74 C92.5 79, 100.3 84, 103 86';
+  // 테두리를 반투명 대신 같은 색의 불투명 색으로 → 눈밭 색(위·아래가 다름)이 비치지 않아 모든 길이 똑같은 색으로 보임
+  const layers=[['#d3bd9d',24,'',1],['#efdfc0',18,'',1],['#ffffff',3.5,'1 13',.9]];
   let h='';
-  const parkRoad='M39.8 66.1 C42 60, 46 54, 50 49.5';   // 눈꽃랜드으로 가는 갈래길
-  // 미래 트리 광장 → 눈꽃 은행 → (한강 가를 따라) 눈꽃 증권거래소
-  const riverRoad='M87 74 C84.5 79.5, 79 83.5, 73 85.5 C63 88.5, 50 89.8, 40 89.3 C34 89, 29.5 88, 25 86.5';
-  layers.forEach(([c,w,dash,op])=>[[main,1],[parkRoad,.7],[riverRoad,.7]].forEach(([d,k])=>{
+  const parkRoad='M39.8 64.6 C42 59.5, 46 54, 50 49.5';   // 눈꽃랜드으로 가는 갈래길
+  // 강변길: 미래 트리 광장 → 눈꽃 은행 → (한강 가를 따라) 눈꽃 증권거래소 → 민주주의 광장 쪽 큰길과 이어짐
+  const riverRoad='M87 74 C84.8 79.2, 79.5 84.4, 73 86 C63 88.4, 45 88.6, 33 86 C24 84, 15 82.2, 8.2 79.4';
+  layers.forEach(([c,w,dash,op])=>[[main,1],[parkRoad,.7],[riverRoad,1]].forEach(([d,k])=>{
     h+=`<path d="${d}" stroke="${c}" stroke-width="${w*k}" ${dash?`stroke-dasharray="${dash}"`:''} opacity="${op}" vector-effect="non-scaling-stroke"/>`;
   }));
   document.getElementById('roads').innerHTML=h;
@@ -1616,10 +1629,12 @@ const OFFICE_SVG=(()=>{
   const solar=[0,1,2].map(i=>`<path d="M${13+i*9} ${46} L${17+i*9} ${42} L${24+i*9} ${42} L${20+i*9} ${46}Z" fill="#6aa9e0" stroke="#ffffff" stroke-width=".8"/>`).join('');
   const left=wing(6,52,32,'#b3eedb','#72d1b0','#dcf9ef',solar);
   // 오른쪽: 작은 풍력 바람개비가 있는 중간 건물
-  const turbine=`<line x1="122" y1="34" x2="122" y2="18" stroke="#ffffff" stroke-width="1.6"/>
+  // 눈 덮인 산(흰 배경) 앞에서도 잘 보이도록 날개에 초록 테두리
+  const blade=`<path d="M0 0 L-1.6 -9.5 Q0 -11.2 1.6 -9.5Z" fill="#ffffff" stroke="#3f9c7c" stroke-width=".9" stroke-linejoin="round"/>`;
+  const turbine=`<line x1="122" y1="34" x2="122" y2="18" stroke="#3f9c7c" stroke-width="2.6" stroke-linecap="round"/><line x1="122" y1="34" x2="122" y2="18" stroke="#ffffff" stroke-width="1.2"/>
     <g transform="translate(122 18)"><g class="windmill">
-      <path d="M0 0 L-1.4 -9 Q0 -10.5 1.4 -9Z" fill="#ffffff"/><path d="M0 0 L-1.4 -9 Q0 -10.5 1.4 -9Z" fill="#ffffff" transform="rotate(120)"/><path d="M0 0 L-1.4 -9 Q0 -10.5 1.4 -9Z" fill="#ffffff" transform="rotate(240)"/>
-      <circle r="1.6" fill="#7ccfb0"/></g></g>`;
+      ${blade}<g transform="rotate(120)">${blade}</g><g transform="rotate(240)">${blade}</g>
+      <circle r="1.9" fill="#3f9c7c"/><circle r="1" fill="#ffffff"/></g></g>`;
   const right=wing(100,40,30,'#aaebd5','#68cdaa','#d8f8ed',turbine);
   return `<svg viewBox="0 0 140 100" aria-hidden="true">
   <ellipse cx="70" cy="96" rx="66" ry="3.5" fill="rgba(60,110,110,.18)"/>
@@ -1708,8 +1723,8 @@ function renderBuildings(){
     tg.innerHTML=`<div class="sign">${locked?'🔒 ':''}${st.place}<small>${st.topic}</small>${S.stages[i].cleared?`<span class="st">${'⭐'.repeat(stars)+'☆'.repeat(3-stars)}</span>`:''}</div><div class="post"></div><div class="mound"></div>`;
     tg.style.left=st.pos[0]+'%'; tg.style.top=st.pos[1]+'%'; tg.style.setProperty('--tilt',(i%2?2:-2)+'deg');
     const go=()=>{
-      if(locked){ sfx('locked'); toast(`🔒 「${STAGES[i-1].place}」를 먼저 통과해야 열려요!`); const av=$('avatar'); av.animate([{marginLeft:'0'},{marginLeft:'-8px'},{marginLeft:'8px'},{marginLeft:'0'}],{duration:300}); return; }
-      sfx('click'); const w=[[24,72],[19,55],[61,74],[84,55],[96,73]][i]; walkTo(w[0], w[1], ()=>openStage(i));
+      if(locked){ sfx('locked'); toast(`🔒 「${STAGES[i-1].place}」${josa(STAGES[i-1].place,'을','를')} 먼저 통과해야 열려요!`); const av=$('avatar'); av.animate([{marginLeft:'0'},{marginLeft:'-8px'},{marginLeft:'8px'},{marginLeft:'0'}],{duration:300}); return; }
+      sfx('click'); const w=[[24,72],[19,55],[61,71],[84,58.5],[96,73]][i]; walkTo(w[0], w[1], ()=>openStage(i));
     };
     d.onclick=go; tg.onclick=go;
     $('buildings').appendChild(d); $('labelLayer').appendChild(tg);
@@ -1732,19 +1747,20 @@ function renderBuildings(){
   bd.innerHTML=`${bCur?'<div class="here">여기!</div>':''}<div class="icon">${BANK_SVG}</div>`;
   place(bd,BANK.pos[0],BANK.pos[1]);
   const bt=document.createElement('div'); bt.className='tag stage';
-  bt.innerHTML=`<div class="sign">눈꽃 은행<small>예금 · 대출 · ${bOpen?'6단계 금융 퀴즈':'🔒 6단계 퀴즈'}</small>${bRec&&bRec.cleared?`<span class="st">${'⭐'.repeat(bRec.stars)+'☆'.repeat(3-bRec.stars)}</span>`:''}</div><div class="post"></div><div class="mound"></div>`;
+  bt.innerHTML=`<div class="sign">눈꽃 은행<small>예금 · 대출 · ${bOpen?'금융 퀴즈':'🔒 금융 퀴즈'}</small>${bRec&&bRec.cleared?`<span class="st">${'⭐'.repeat(bRec.stars)+'☆'.repeat(3-bRec.stars)}</span>`:''}</div><div class="post"></div><div class="mound"></div>`;
   bt.style.setProperty('--tilt','-1.5deg'); bt.style.left=BANK.pos[0]+'%'; bt.style.top=BANK.pos[1]+'%';
   const goBank=()=>{ sfx('click'); walkTo(BANK.walk[0],BANK.walk[1],()=>openBank()); };
   bd.onclick=goBank; bt.onclick=goBank;
   $('buildings').appendChild(bd); $('labelLayer').appendChild(bt);
-  // 📈 눈꽃 증권거래소 (왼쪽 아래 한강 가, 언제든지 들어갈 수 있음)
-  const xd=document.createElement('div'); xd.className='bld stage bank exch'+(S.exchVisited?'':' current');
-  xd.innerHTML=`${S.exchVisited?'':'<div class="here">NEW!</div>'}<div class="icon">${EXCH_SVG}</div>`;
+  // 📈 눈꽃 증권거래소 (왼쪽 아래 한강 가) · 눈꽃 은행 금융 퀴즈를 통과하면 열려요
+  const xOpen=exchOpen(), xNew=xOpen&&!S.exchVisited;
+  const xd=document.createElement('div'); xd.className='bld stage bank exch'+(xOpen?'':' locked')+(xNew?' current':'');
+  xd.innerHTML=`${xNew?'<div class="here">NEW!</div>':''}<div class="icon">${EXCH_SVG}</div>`;
   place(xd,EXCH.pos[0],EXCH.pos[1]);
-  const xt=document.createElement('div'); xt.className='tag stage';
-  xt.innerHTML=`<div class="sign">눈꽃 증권거래소<small>시장 가격 게임 · 수요와 공급</small></div><div class="post"></div><div class="mound"></div>`;
+  const xt=document.createElement('div'); xt.className='tag stage'+(xOpen?'':' locked');
+  xt.innerHTML=`<div class="sign">${xOpen?'':'🔒 '}눈꽃 증권거래소<small>시장 가격 게임 · 수요와 공급</small></div><div class="post"></div><div class="mound"></div>`;
   xt.style.setProperty('--tilt','1.5deg'); xt.style.left=EXCH.pos[0]+'%'; xt.style.top=EXCH.pos[1]+'%';
-  const goExch=()=>{ sfx('click'); walkTo(EXCH.walk[0],EXCH.walk[1],()=>openExchange()); };
+  const goExch=()=>{ if(!exchOpen()){ exchLockedMsg(); return; } sfx('click'); walkTo(EXCH.walk[0],EXCH.walk[1],()=>openExchange()); };
   xd.onclick=goExch; xt.onclick=goExch;
   $('buildings').appendChild(xd); $('labelLayer').appendChild(xt);
 }
@@ -1856,13 +1872,13 @@ let nearT=null;
 const gameOn=()=>$('start').classList.contains('hidden') && $('modal').classList.contains('hidden') && !document.documentElement.classList.contains('bankrupt');   // 파산 화면 중에는 움직일 수 없음
 function targets(){
   const t=STAGES.map((st,i)=>({x:st.pos[0],y:st.pos[1],go:()=>enterStage(i)})).filter((_,i)=>!STAGES[i].bank);
-  t.push({x:EXCH.pos[0],y:EXCH.pos[1],go:()=>{ sfx('click'); openExchange(); }});
+  t.push({x:EXCH.pos[0],y:EXCH.pos[1],go:()=>{ if(!exchOpen()){ exchLockedMsg(); return; } sfx('click'); openExchange(); }});
   t.push({x:PARK.pos[0],y:PARK.pos[1],go:()=>{ if(parkOpen()){ sfx('click'); openPark(); } else { sfx('locked'); toast(PARK_BAN_MSG); } }});
   t.push({x:BANK.pos[0],y:BANK.pos[1],go:()=>{ sfx('click'); openBank(); }});
   return t;
 }
 function enterStage(i){
-  if(i>=unlockedCount()){ sfx('locked'); toast(`🔒 「${STAGES[i-1].place}」를 먼저 통과해야 열려요!`); return; }
+  if(i>=unlockedCount()){ sfx('locked'); toast(`🔒 「${STAGES[i-1].place}」${josa(STAGES[i-1].place,'을','를')} 먼저 통과해야 열려요!`); return; }
   sfx('click'); openStage(i);
 }
 function checkNear(){
@@ -1950,6 +1966,7 @@ function renderDecor(){
         const pts=[[42,38],[58,45],[35,58],[62,62],[48,70],[30,78],[68,80],[52,52]];
         inner+='<span class="topstar">⭐</span>'+pts.map((p,i)=>`<span class="light" style="left:${p[0]}%;top:${p[1]}%;background:${cols[(i+n)%cols.length]};box-shadow:0 0 6px 2px ${cols[(i+n)%cols.length]};animation-delay:${((i+n)*.27).toFixed(2)}s"></span>`).join('');
       }
+      if(it.id==='solar') inner=SOLAR_SVG+`<span class="charge"><i style="width:${solarPct(key)}%"></i></span>`+(solarFull(key)?`<span class="sellBub">⚡ 전기 팔기 🌰${SOLAR.earn}</span>`:'');
       d.innerHTML=`<span class="in">${inner}</span>`;
       layer.appendChild(d);
       setDecorPos(d, S.pos[key]||defaultPos(it.id,n));
@@ -1984,6 +2001,8 @@ function decorClick(id,el){
   else if(id==='tree'){ burst(x,y-20,{n:30,chars:['⭐','✨'],size:16,speed:200,g:120,life:1.2}); sfx('bell'); }
   else if(id==='fire'){ burst(x,y,{n:30,speed:150,g:-60,life:1.2,colors:['#ffb347','#ffe066','#ff6b3d'],size:3}); sfx('pop'); }
   else if(id==='lamp'){ burst(x,y,{n:18,speed:100,g:-20,life:1.4,colors:['#fff1b8','#ffd27a'],size:3}); sfx('pop'); }
+  else if(id==='solar' && solarFull(el.dataset.key)){ sellSolar(el.dataset.key); }
+  else if(id==='solar'){ const k=el.dataset.key, left=Math.ceil((SOLAR.secs-(solarP()[k]||0))/60); textPop(x,y-30,`⚡ 충전 ${solarPct(k)}% · 약 ${left}분 뒤 판매`,'#fff6a8'); burst(x,y,{n:12,chars:['⚡','☀️'],size:18,speed:120,g:60,life:1}); sfx('blip'); }
   else if(id==='maple'){ burst(x,y,{n:14,chars:['🍁','🍂'],size:22,speed:140,g:120,life:1.6}); sfx('pop'); }
 }
 function makeDraggable(el,key,id){
@@ -2014,6 +2033,67 @@ function makeDraggable(el,key,id){
   el.addEventListener('click',e=>e.stopPropagation());
 }
 
+/* ---------- ☀️ 태양광 발전기: 마을에 설치하면 5분마다 전기를 팔아 도토리를 벌어요 ----------
+   게임을 켜 둔 동안에만 충전돼요. 발전기 1대마다 🌰5 (최대 3대 → 5분에 🌰15). */
+const SOLAR={secs:300, earn:5};
+const solarPct=k=>Math.min(100,Math.floor((solarP()[k]||0)/SOLAR.secs*100));
+const SOLAR_SVG=`<svg class="solarsvg" viewBox="0 0 100 86" aria-hidden="true">
+  <ellipse cx="50" cy="82" rx="34" ry="3.5" fill="rgba(60,80,130,.22)"/>
+  <rect x="46" y="44" width="8" height="36" rx="2" fill="#8d99ad"/><rect x="34" y="76" width="32" height="6" rx="2" fill="#6f7b90"/>
+  <polygon points="8,46 28,10 92,10 72,46" fill="#e9eef6" stroke="#8d99ad" stroke-width="2"/>
+  <polygon points="12,43 30,13 88,13 70,43" fill="#2f5fb0"/>
+  ${[0,1,2].map(r=>[0,1,2,3].map(c=>{ const vt=1-r/3, vb=1-(r+1)/3, l=c/4, rr=(c+1)/4;
+    const P=(u,v)=>[12+58*u+18*v, 43-30*v];   // 기울어진 패널 위의 점 (u: 가로, v: 아래→위)
+    const p=[P(l,vt),P(rr,vt),P(rr,vb),P(l,vb)].map(q=>q.map(n=>n.toFixed(1)).join(',')).join(' ');
+    return `<polygon points="${p}" fill="${(r+c)%2?'#3b74d1':'#3468c0'}" stroke="#9cc3ff" stroke-width=".8"/>`; }).join('')).join('')}
+  <polygon points="30,13 88,13 84,19 34,19" fill="#ffffff" opacity=".18"/>
+  <path d="M27 9.5 Q34 6 42 8.5 Q50 5.5 58 8.2 Q67 5.4 75 8.2 Q84 6 93 9.5 Q85 12.5 77 10.8 Q68 13 60 10.8 Q51 13 43 10.8 Q34 13 27 9.5Z" fill="#ffffff"/>
+</svg>`;
+// 발전기마다 따로 충전돼요: S.solarP = {solar:초, solar_1:초, solar_2:초}
+const solarKeys=()=>{ const n=has('solar')?qty('solar'):0; return [...Array(n).keys()].map(i=>i?'solar_'+i:'solar'); };
+function solarP(){ if(!S.solarP){ S.solarP={}; if(S.solarProg) solarKeys().forEach(k=>S.solarP[k]=S.solarProg); delete S.solarProg; } return S.solarP; }   // 예전 기록(한꺼번에 충전)도 이어받음
+const solarFull=k=>(solarP()[k]||0)>=SOLAR.secs;
+const solarEl=k=>document.querySelector(`.decor.solar[data-key="${k}"]`);
+function solarTick(){
+  const keys=solarKeys();
+  if(!keys.length && $('btnSolar') && !$('btnSolar').classList.contains('hidden')) solarUI();   // 발전기를 치우면 버튼도 숨김
+  if(!keys.length || !$('start').classList.contains('hidden') || document.documentElement.classList.contains('bankrupt') || document.hidden) return;
+  const P=solarP(); let justFull=0, tick=0;
+  keys.forEach(k=>{
+    if((P[k]||0)>=SOLAR.secs) return;   // 가득 찬 발전기는 팔 때까지 더 충전되지 않아요
+    P[k]=(P[k]||0)+1; tick=P[k];
+    const bar=solarEl(k)?.querySelector('.charge i'); if(bar) bar.style.width=solarPct(k)+'%';
+    if(P[k]>=SOLAR.secs){ justFull++; const el=solarEl(k); if(el&&!LITE){ const [x,y]=elCenter(el,.3); burst(x,y,{n:10,chars:['⚡','✨'],size:18,speed:120,g:60,life:1}); } }
+  });
+  solarUI();
+  if(justFull){ save(); sfx('bell'); if($('modal').classList.contains('hidden')) toast(`⚡ 태양광 발전기에서 전기가 만들어졌어요! 반짝이는 <b>⚡ 전기 팔기</b>를 눌러 도토리 🌰 ${SOLAR.earn}개씩 받아요!`); }
+  else if(tick && tick%30===0) save();   // 30초마다 충전 상태 저장
+}
+// ⚡ 전기 생산 완료 알림: 다 만든 발전기 위에만 '전기 팔기' 말풍선 + 위쪽에 알림 버튼
+const solarReady=()=>solarKeys().some(solarFull);
+function solarUI(){
+  const ready=solarKeys().filter(solarFull), b=$('btnSolar');
+  if(b){ b.classList.toggle('hidden',!ready.length); b.innerHTML=`⚡ 전기가 만들어졌어요! <small>${ready.length}대</small>`; }
+  document.querySelectorAll('.decor.solar').forEach(el=>{
+    const full=solarFull(el.dataset.key); let s=el.querySelector('.sellBub');
+    if(full && !s){ s=document.createElement('span'); s.className='sellBub'; s.textContent=`⚡ 전기 팔기 🌰${SOLAR.earn}`; el.querySelector('.in').appendChild(s); }
+    else if(!full && s) s.remove(); });
+}
+// 발전기 하나를 누르면 그 발전기의 전기만 팔아요
+function sellSolar(k){
+  if(!solarFull(k)) return;
+  solarP()[k]=0; S.solarEarned=(S.solarEarned||0)+SOLAR.earn; addCoins(SOLAR.earn);   // addCoins 안에서 저장돼요
+  const el=solarEl(k);
+  if(el){ const [x,y]=elCenter(el,.3); textPop(x,y-30,`⚡ 전기 판매 +${SOLAR.earn} 🌰`,'#fff6a8'); burst(x,y,{n:12,chars:['⚡','🌰'],size:18,speed:150,g:120,life:1.1}); const bar=el.querySelector('.charge i'); if(bar) bar.style.width='0%'; }
+  sfx('coin'); solarUI();
+}
+// 위쪽 알림 버튼: 전기를 다 만든 발전기를 반짝여서 알려 줘요 (파는 건 발전기를 하나씩 눌러서)
+function showReadySolar(){
+  const ready=solarKeys().filter(solarFull); if(!ready.length) return;
+  ready.forEach(k=>{ const el=solarEl(k); if(!el) return; el.animate([{filter:'drop-shadow(0 0 0 #ffe066)'},{filter:'drop-shadow(0 0 18px #ffe066)'},{filter:'drop-shadow(0 0 0 #ffe066)'}],{duration:700,iterations:2}); const [x,y]=elCenter(el,.3); burst(x,y,{n:14,chars:['✨','⚡'],size:18,speed:140,g:40,life:1}); });
+  sfx('blip'); toast(`☀️ 반짝이는 발전기 ${ready.length}대를 <b>하나씩 눌러</b> 전기를 팔아 보세요!`);
+}
+setInterval(solarTick,1000);
 let catTimer=null, sleighTimer=null;
 function applyEquips(){
   renderAvatar(); renderDecor();
@@ -2370,8 +2450,9 @@ function showResult(){
   const isFinal = firstClear && i===STAGES.length-1;
   let msg='';
   if(!pass) msg=`통과하려면 <b>${Math.ceil(n*S.passRate-1e-9)}문제</b> 이상 맞혀야 해요. 해설을 떠올리며 다시 도전해 볼까요? 💪`;
-  else if(firstClear && i<STAGES.length-1) msg=`🔓 <b>「${STAGES[i+1].place}」</b>가 열렸어요!`;
+  else if(firstClear && i<STAGES.length-1) msg=`🔓 <b>「${STAGES[i+1].place}」</b>${josa(STAGES[i+1].place,'이','가')} 열렸어요!`;
   else if(isFinal) msg='🏆 마을의 모든 장소를 열었어요! 눈꽃마을 축제가 시작돼요!';
+  if(firstClear && st.bank) msg+='<br>📈 <b>「눈꽃 증권거래소」</b>도 열렸어요! 시장 가격 게임을 해 봐요.';
   else msg='다시 풀어서 별 3개에 도전해 봐요! ⭐';
   openModal(head(st,'결과')+`<div class="panel-body result">
     <div class="hostname" style="margin:0">${st.hostName}</div>
@@ -2397,7 +2478,7 @@ function showResult(){
 }
 function celebrateUnlock(k){
   if(k>=STAGES.length) return;
-  setTimeout(()=>{ const el=STAGES[k].bank ? document.querySelector('.bld.bank:not(.exch)') : document.querySelectorAll('.bld.stage')[k]; if(!el) return; const [x,y]=elCenter(el,.4); burst(x,y,{n:40,speed:280,g:160,life:1.4,size:4}); burst(x,y,{n:10,chars:['🔓','⭐'],size:24,speed:200,g:160,life:1.3}); sfx('bell'); toast(`🔓 「${STAGES[k].place}」가 열렸어요! 가 볼까요?`); },400);
+  setTimeout(()=>{ const el=STAGES[k].bank ? document.querySelector('.bld.bank:not(.exch)') : document.querySelectorAll('.bld.stage')[k]; if(!el) return; const [x,y]=elCenter(el,.4); burst(x,y,{n:40,speed:280,g:160,life:1.4,size:4}); burst(x,y,{n:10,chars:['🔓','⭐'],size:24,speed:200,g:160,life:1.3}); sfx('bell'); toast(`🔓 「${STAGES[k].place}」${josa(STAGES[k].place,'이','가')} 열렸어요! 가 볼까요?`); },400);
 }
 
 /* =========================================================
@@ -2439,8 +2520,8 @@ function openBank(msg){
   const dep=S.deposit, depLeft=dep?depositLeftMs():0;
   openModal(bankHead()+`<div class="panel-body">
     <div class="shopkeeper"><div class="bubble" id="bankTalk">🐷 <b>꿀꿀이 은행원</b> : ${msg||(d?`빌려 간 시럽 값이 <b>🌰 ${d}</b> 남았어. 퀴즈로 도토리를 모아서 꼭 갚아 줘~ 꿀꿀!`:'어서 와~ 도토리를 <b>예금</b>하면 <b>이자</b>가 붙어 불어나! 도토리가 모자라면 <b>마법 시럽</b>을 빌려 갈 수도 있어. 꿀꿀!')}</div></div>
-    <div class="bankquiz ${qOpen?'':'lock'}">🎓 6단계 금융 퀴즈 · 저축과 이자, 대출과 신용
-      ${qOpen?`${qRec.cleared?`<span>${'⭐'.repeat(qRec.stars)+'☆'.repeat(3-qRec.stars)}</span>`:''}<button class="btn green" id="bQuiz">${qRec.cleared?'🔁 다시 풀기':'✏️ 퀴즈 풀기'}</button>`:`<span style="font-size:14px">🔒 「${STAGES[BANK_STAGE-1].place}」를 통과하면 열려요</span>`}</div>
+    <div class="bankquiz ${qOpen?'':'lock'}">🎓 금융 퀴즈 · 저축과 이자, 대출과 신용
+      ${qOpen?`${qRec.cleared?`<span>${'⭐'.repeat(qRec.stars)+'☆'.repeat(3-qRec.stars)}</span>`:''}<button class="btn green" id="bQuiz">${qRec.cleared?'🔁 다시 풀기':'✏️ 퀴즈 풀기'}</button>`:`<span style="font-size:14px">🔒 「${STAGES[BANK_STAGE-1].place}」${josa(STAGES[BANK_STAGE-1].place,'을','를')} 통과하면 열려요</span>`}</div>
     <div class="bankgrid">
       <div class="item">
         <div class="em">💰</div><div class="nm">도토리 예금 (저축)</div>
@@ -2702,7 +2783,7 @@ const BANK_SVG=`<svg class="banksvg" viewBox="0 0 100 92" aria-hidden="true">
 /* =========================================================
    📈 눈꽃 증권거래소 : 시장 가격 게임 (수요와 공급)
    ========================================================= */
-const EXCH={pos:[25,86], walk:[31,88.5]};   // 왼쪽 아래 한강 가
+const EXCH={pos:[33,86], walk:[40,87.6]};   // 왼쪽 아래 한강 가 (강변길 위)
 const EXCH_SVG=`<svg class="banksvg" viewBox="0 0 100 92" aria-hidden="true">
   <ellipse cx="50" cy="87" rx="44" ry="4" fill="rgba(60,80,130,.2)"/>
   <rect x="8" y="78" width="84" height="7" rx="2" fill="#c9d6e8"/><rect x="12" y="73" width="76" height="6" rx="2" fill="#dde7f4"/>
@@ -2730,7 +2811,11 @@ const MKT_UP=t=>t==='D+'||t==='S-';
 const MKT_WHY={'D+':'사려는 사람(<b>수요</b>)이 늘어서 가격이 <b>올랐어요</b>','D-':'사려는 사람(<b>수요</b>)이 줄어서 가격이 <b>내렸어요</b>','S+':'파는 물건(<b>공급</b>)이 많아져서 가격이 <b>내렸어요</b>','S-':'파는 물건(<b>공급</b>)이 줄어서 가격이 <b>올랐어요</b>'};
 const MKT_DAYS=8, MKT_CASH=100, MKT_MAXR=30;
 function exchHead(sub,back){ return `<div class="panel-head"><div class="host">🦝</div><h2>📈 눈꽃 증권거래소<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="exCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openExchange()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
+// 증권거래소는 눈꽃 은행 금융 퀴즈를 통과해야 열려요 (선생님의 '모두 열기'면 바로 열림)
+function exchOpen(){ return !!S.allOpen || !!(S.stages[BANK_STAGE]&&S.stages[BANK_STAGE].cleared); }
+function exchLockedMsg(){ sfx('locked'); toast('🔒 「눈꽃 은행」의 <b>금융 퀴즈</b>를 통과해야 눈꽃 증권거래소가 열려요!'); const av=$('avatar'); av.animate([{marginLeft:'0'},{marginLeft:'-8px'},{marginLeft:'8px'},{marginLeft:'0'}],{duration:300}); }
 function openExchange(){
+  if(!exchOpen()){ closeModal(); exchLockedMsg(); return; }
   if(parkCleanup){ parkCleanup(); parkCleanup=null; }
   if(!S.exchVisited){ S.exchVisited=true; save(); renderBuildings(); }
   openModal(exchHead('시장 가격 게임')+`<div class="panel-body">
@@ -3302,19 +3387,20 @@ function openHelp(){
     <h3>🎮 이렇게 놀아요</h3>
     <ul><li><b>방향키(←↑↓→)</b>로 캐릭터를 움직이고, 건물 앞에서 <b>스페이스/엔터</b>를 누르면 들어가요. 마우스로 장소를 눌러도 돼요.</li>
     <li>주민의 이야기를 듣고 퀴즈를 풀어요.</li>
-    <li>문제를 <b>${Math.round(S.passRate*100)}% 이상</b> 맞히면 통과! 다음 단계의 자물쇠🔒가 풀려요.</li>
+    <li>문제를 <b>${Math.round(S.passRate*100)}% 이상</b> 맞히면 통과! 다음 장소의 자물쇠🔒가 풀려요.</li>
     <li>정답마다 🌰10, 첫 통과 보너스 🌰50, 만점 보너스 🌰30을 받아요. 다시 풀어도 도토리를 모을 수 있어요.</li>
     <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🧩 동해 풍경 퍼즐, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
     <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 10개씩 받아요.</li>
     <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
-    <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>6단계 금융 퀴즈</b>도 은행 안에서 풀어요.</li>
-    <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가): 📰 시장 소식을 읽고 <b>수요와 공급</b>에 따라 가격이 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 번 만큼 도토리를 받아요(최대 🌰${MKT_MAXR}).</li>
+    <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>금융 퀴즈</b>도 은행 안에서 풀어요(미래 트리 광장을 통과하면 열려요).</li>
+    <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가, 눈꽃 은행 금융 퀴즈를 통과하면 열려요):📰 시장 소식을 읽고 <b>수요와 공급</b>에 따라 가격이 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 번 만큼 도토리를 받아요(최대 🌰${MKT_MAXR}).</li>
+    <li>☀️ <b>태양광 발전기</b>(상점): 마을에 설치하면 게임을 켜 둔 동안 전기를 만들어요. 5분 뒤 전기가 다 만들어지면 <b>⚡ 전기 팔기</b> 버튼(위쪽 메뉴나 발전기 위)을 눌러 1대에 🌰${SOLAR.earn}을 벌어요(3대까지). 팔기 전까지는 더 만들지 않아요!</li>
     <li>🛖 상점에서 <b>구매하기</b>를 눌러 아이템을 사고, 상점의 <b>착용/설치·해제하기</b> 버튼으로 꾸며요. <b>내 아이템</b> 탭에서 가진 것만 모아 볼 수 있어요.</li>
     <li>🧪 <b>마법 시럽</b>을 사서 퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요.</li>
     <li>마을 장식은 끌어서 옮길 수 있고, 누르면 효과가 나타나요. 캐릭터도 눌러 보세요!</li></ul>
     </div><div>
-    <h3>🗺️ ${STAGES.length}단계 학습 지도</h3>
-    <div class="stagelist">${STAGES.map((s,i)=>`<div>${s.icon} <b>${i+1}단계 ${s.place}</b> — ${s.topic} ${S.stages[i].cleared?'✅ (최고 '+S.stages[i].best+'/'+s.questions.length+')':''}</div>`).join('')}</div>
+    <h3>🗺️ 학습 지도 (장소 ${STAGES.length}곳)</h3>
+    <div class="stagelist">${STAGES.map((s,i)=>`<div>${s.icon} <b>${i+1}. ${s.place}</b> — ${s.topic} ${S.stages[i].cleared?'✅ (최고 '+S.stages[i].best+'/'+s.questions.length+')':''}</div>`).join('')}</div>
     <h3>🧑‍🏫 선생님 메뉴</h3>
     <div class="rowbtns" style="justify-content:flex-start">
       <button class="btn blue" onclick="askTeacher(true)">🧑‍🏫 선생님 모드 (비밀번호)</button>
