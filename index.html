@@ -470,6 +470,28 @@ svg.won{width:1em;height:1em;display:inline-block;vertical-align:-.14em}
 /* 눈꽃랜드 */
 .parkmenu{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:760px;margin:0 auto}   /* 눈꽃랜드 놀이기구: 2개씩 두 줄 */
 @media (max-width:420px){.parkmenu{grid-template-columns:1fr}}
+.parkmenu .gcard:last-child:nth-child(odd){grid-column:1/-1;width:calc(50% - 7px);justify-self:center}   /* 홀수 개면 마지막 카드는 가운데 */
+.parkmenu .gcard{padding:10px 12px}.parkmenu .gcard .gi{font-size:40px}.parkmenu .gcard .gn{font-size:19px;margin:3px 0 2px}.parkmenu .gcard .gd{font-size:13px}
+/* 🔔 눈꽃 종치기 */
+.bellbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
+.belltable{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"a b" "c d";gap:10px;max-width:640px;margin:0 auto;align-items:center}
+#bs1{grid-area:a}#bs2{grid-area:b}#bs0{grid-area:c}.bellbtn{grid-area:d}
+.bellseat{text-align:center}
+.bellwho{font-family:'Jua';font-size:15px;color:#7d6a55;margin-bottom:4px}
+.bellseat.me .bellwho{color:#3f8f55}
+.bellcard{height:clamp(110px,calc((var(--app-h,100vh) - 360px) / 2),170px);background:#fff;border-radius:16px;box-shadow:0 5px 0 #d8c3a1;display:flex;align-items:center;justify-content:center;border:3px solid #fff}
+.bellseat.me .bellcard{border-color:#9bd8aa}
+.bellseat.flipped .bellcard{animation:bflip .35s ease-out}
+@keyframes bflip{from{transform:rotateY(90deg)}to{transform:none}}
+.bempty{font-family:'Jua';font-size:34px;color:#e2cfae}
+.bpics{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:2px 6px;font-size:clamp(26px,4.2vh,38px);max-width:80%}
+.bpics.n4{max-width:60%}
+.bellbtn{height:clamp(110px,calc((var(--app-h,100vh) - 360px) / 2),170px);border-radius:50%;aspect-ratio:1;justify-self:center;background:radial-gradient(circle at 35% 30%,#fff6c8,#f5c542 60%,#d9a21e);box-shadow:0 8px 0 #b8861a,0 12px 20px rgba(0,0,0,.2);font-size:clamp(40px,7vh,60px);line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:manipulation}
+.bellbtn small{font-family:'Jua';font-size:12px;color:#7a5a12;margin-top:4px}
+.bellbtn:active,.bellbtn.hit{transform:translateY(5px);box-shadow:0 3px 0 #b8861a}
+.bellbtn.hit{animation:bump .3s}
+.bellmsg{text-align:center;font-family:'Jua';font-size:16px;margin-top:10px;min-height:1.5em;color:#7d6a55}
+.bellmsg.good{color:#3f8f55}.bellmsg.bad{color:#c0504c}
 .gcard{background:#fff;border-radius:22px;padding:16px 14px;text-align:center;box-shadow:0 5px 0 #ecdcc0;cursor:pointer;transition:transform .15s}
 .gcard:hover{transform:translateY(-4px) rotate(-1deg)}
 .gcard .gi{font-size:54px;line-height:1.1}
@@ -2238,9 +2260,10 @@ function showResult(){
   if(pass){ sfx('fanfare'); confetti(firstClear?120:60); } else sfx('wrong');
   $('rAgain').onclick=()=>{ const k=QZ.si; openStage(k); startQuestions(); };
   // 마을로 나갈 때 빚이 있으면 은행원 꿀꿀이가 먼저 찾아와요
-  if($('rHome')) $('rHome').onclick=()=>{ QZ=null; bankerVisit(()=>{ closeModal(); renderBuildings(); renderHud(); if(firstClear) celebrateUnlock(i+1); }); };
-  if($('rShop')) $('rShop').onclick=()=>{ QZ=null; bankerVisit(()=>{ renderBuildings(); renderHud(); openShop(); }); };
-  if($('rEnd')) $('rEnd').onclick=()=>{ QZ=null; bankerVisit(()=>{ renderBuildings(); renderHud(); showEnding(); }); };
+  // (은행원은 이제 퀴즈 뒤가 아니라 아무 때나 무작위로 찾아와요 → randomBanker)
+  if($('rHome')) $('rHome').onclick=()=>{ QZ=null; closeModal(); renderBuildings(); renderHud(); if(firstClear) celebrateUnlock(i+1); };
+  if($('rShop')) $('rShop').onclick=()=>{ QZ=null; renderBuildings(); renderHud(); openShop(); };
+  if($('rEnd')) $('rEnd').onclick=()=>{ QZ=null; renderBuildings(); renderHud(); showEnding(); };
 }
 function celebrateUnlock(k){
   if(k>=STAGES.length) return;
@@ -2308,7 +2331,7 @@ function bankerVisit(next){
   if((S.missed||0)>=ANGRY_AFTER){ angryVisit(next); return; }   // 연체 2번 뒤에는 화가 나서 찾아와요
   const d=S.debt, p1=Math.min(LOAN.part,d,S.coins), pAll=Math.min(d,S.coins);
   openModal(bankHead(true)+`<div class="panel-body">
-    <div class="shopkeeper"><div class="bubble" style="font-size:16px">🐷 <b>꿀꿀이 은행원</b> : 똑똑~ 퀴즈 푸느라 수고했어! 빌려 간 <b>🧪 마법 시럽</b> 값을 갚을 시간이야.<br>
+    <div class="shopkeeper"><div class="bubble" style="font-size:16px">🐷 <b>꿀꿀이 은행원</b> : 똑똑~ 꿀꿀이 은행원이 독촉하러 왔어! 빌려 간 <b>🧪 마법 시럽</b> 값을 갚을 시간이야.<br>
       남은 빚 <b>🌰 ${d}</b> · 지금 가진 도토리 <b>🌰 ${S.coins}</b>
       ${S.coins?'':'<br>앗, 도토리가 하나도 없구나. 이번엔 그냥 갈게! 다음 퀴즈에서 모아 와~'}</div></div>
     <div class="rowbtns">
@@ -2348,6 +2371,26 @@ function angryVisit(next){
   // 다음에 갚기 → 연체 3번째 → 파산
   $('aSorry').onclick=()=>{ S.missed=(S.missed||0)+1; if(S.missed>=BANKRUPT_AT) bankrupt(next); else { S.debt+=LOAN.late*2; save(); renderHud(); done(`🐷 꿀꿀… 남은 빚 🌰 ${S.debt}`); } };
 }
+
+/* ---------- 🐷 은행원 무작위 방문(독촉) ----------
+   빚이 있으면 1~3분마다 아무 때나 찾아와요. 마을에 있을 때도, 눈꽃랜드에서 게임할 때도!
+   (퀴즈를 푸는 중이거나 상점·은행 같은 창을 보고 있을 땐 잠시 기다렸다가 와요) */
+let nextVisitAt=0;
+function scheduleVisit(minS,maxS){ nextVisitAt=Date.now()+rnd(minS,maxS)*1000; }
+setInterval(()=>{
+  if(!(S&&S.debt>0)){ nextVisitAt=0; return; }                                    // 빚이 없으면 안 와요
+  if(!$('start').classList.contains('hidden') || document.documentElement.classList.contains('bankrupt')) return;
+  if(!nextVisitAt){ scheduleVisit(60,150); return; }                               // 빚이 생기면 1~2.5분 뒤 첫 방문
+  if(Date.now()<nextVisitAt) return;
+  const modalOpen=!$('modal').classList.contains('hidden');
+  const inPark=modalOpen && !!document.querySelector('#modalPanel .host.monkey');   // 눈꽃랜드 화면
+  if(QZ || (modalOpen && !inPark)){ nextVisitAt=Date.now()+15000; return; }       // 퀴즈·다른 창은 끝날 때까지 기다림
+  scheduleVisit(80,180);                                                           // 다음 방문 예약 (약 1.5~3분 뒤)
+  if(inPark && parkCleanup){ parkCleanup(); parkCleanup=null; }                    // 하던 게임은 멈춤
+  keys.clear(); sfx('locked');
+  toast('🚪 똑똑! 🐷 은행원 꿀꿀이가 독촉하러 찾아왔어요!');
+  bankerVisit(inPark ? ()=>openPark() : ()=>{ closeModal(); renderBuildings(); renderHud(); });
+},5000);
 
 /* ---------- 💸 파산: 연체 3번 → 30초 동안 흑백 화면 + 재산 압류 ----------
    빚은 없어지지만 도토리와 상점 아이템(장식·꾸미기·펫·하늘 효과·시럽)을 모두 압류해요.
@@ -2500,11 +2543,12 @@ function openPark(){
     <div class="bubble" style="cursor:default;min-height:0;margin-bottom:16px">🐵 어서 와, 눈꽃랜드이야! 공부하다 쉬고 싶을 때 언제든 놀러 와. 놀면서 배운 내용도 떠올리고 <b>도토리🌰</b>도 모을 수 있어. 어떤 놀이기구를 탈래?</div>
     <div class="parkmenu">
       <div class="gcard" data-g="block"><div class="gi">🧱</div><div class="gn">눈꽃 블록 쌓기</div><div class="gd">떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채우면 줄이 사라져요!</div><div class="gr">한 줄마다 🌰3 (최대 30)</div></div>
-      <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰200 · 10분에 5번</div></div>
+      <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰1000 · 10분에 5번</div></div>
       <div class="gcard" data-g="cards"><div class="gi">🃏</div><div class="gn">겨울 카드 뒤집기</div><div class="gd">카드를 두 장씩 뒤집어 눈사람, 트리, 썰매 같은 같은 겨울 그림 짝을 찾아요!</div><div class="gr">완성하면 🌰10~20</div></div>
       <div class="gcard" data-g="puzzle"><div class="gi">🧩</div><div class="gn">동해 풍경 퍼즐</div><div class="gd">추암 촛대바위, 무릉계곡 같은 우리 동해시의 아름다운 풍경 사진 퍼즐을 맞춰요!</div><div class="gr">완성하면 🌰10~30</div></div>
+      <div class="gcard" data-g="bell"><div class="gi">🔔</div><div class="gn">눈꽃 종치기</div><div class="gd">펼쳐진 카드에 같은 그림이 딱 5개가 되면 친구들보다 먼저 종을 쳐요!</div><div class="gr">최대 🌰30</div></div>
     </div></div>`);
-  document.querySelectorAll('.gcard').forEach(c=>c.onclick=()=>{ sfx('click'); ({block:startBlocks,wheel:startWheel,cards:startCards,puzzle:startPuzzle})[c.dataset.g](); });
+  document.querySelectorAll('.gcard').forEach(c=>c.onclick=()=>{ sfx('click'); ({block:startBlocks,wheel:startWheel,cards:startCards,puzzle:startPuzzle,bell:startBell})[c.dataset.g](); });
 }
 
 /* ---------- 🧱 눈꽃 블록 쌓기 ---------- */
@@ -2584,7 +2628,7 @@ function startBlocks(){
 }
 
 /* ---------- 🎰 행운 룰렛 + 퀴즈 ---------- */
-const WHEEL=[10,30,0,50,20,100,0,200];   // 룰렛 상품 (0은 꽝) · 최대 200
+const WHEEL=[10,30,0,50,20,100,0,1000];   // 룰렛 상품 (0은 꽝) · 최대 1000
 // ⏳ 룰렛은 10분 동안 최대 5번 (돌린 시각을 저장해서 새로고침해도 유지)
 const WHEEL_LIMIT=5, WHEEL_WINDOW=10*60*1000;
 function wheelUsed(){ const now=Date.now(); S.wheelLog=(S.wheelLog||[]).filter(t=>now-t<WHEEL_WINDOW).sort((a,b)=>a-b); return S.wheelLog; }
@@ -2596,14 +2640,14 @@ function startWheel(){
     <div style="text-align:center"><div class="rpointer">▼</div><canvas id="rcv" width="280" height="280"></canvas>
     <div class="rowbtns" style="margin-top:6px"><button class="btn gold" id="spin">🎰 룰렛 돌리기!</button></div>
     <div class="gstat wleft" id="wLeft"></div></div>
-    <div id="wq"><div class="bubble" style="cursor:default;min-height:0">🐵 룰렛을 돌려서 나온 도토리를 걸고 퀴즈에 도전해요! 정답을 맞히면 그 도토리를 받아요. <b>최대 🌰200!</b></div></div></div></div>`,'wide');
+    <div id="wq"><div class="bubble" style="cursor:default;min-height:0">🐵 룰렛을 돌려서 나온 도토리를 걸고 퀴즈에 도전해요! 정답을 맞히면 그 도토리를 받아요. <b>최대 🌰1000!</b></div></div></div></div>`,'wide');
   const cv=$('rcv'), g=cv.getContext('2d'); let ang=0, spinning=false, raf=0;
   const cols=['#ff8fa3','#7fd3ff','#c9d0dc','#ffd93d','#7CFFB2','#c77dff','#c9d0dc','#ffb347'];
   function draw(){
     const c=140, r=132, n=WHEEL.length; g.clearRect(0,0,280,280);
     for(let i=0;i<n;i++){ const a0=ang+i*2*Math.PI/n-Math.PI/2, a1=a0+2*Math.PI/n;
       g.beginPath(); g.moveTo(c,c); g.arc(c,c,r,a0,a1); g.closePath(); g.fillStyle=cols[i]; g.fill(); g.strokeStyle='#fff'; g.lineWidth=3; g.stroke();
-      g.save(); g.translate(c,c); g.rotate(a0+Math.PI/n); g.fillStyle='#5a4632'; g.font=(WHEEL[i]>=100?'19px':'20px')+' Jua, sans-serif'; g.textAlign='right';
+      g.save(); g.translate(c,c); g.rotate(a0+Math.PI/n); g.fillStyle='#5a4632'; g.font=(WHEEL[i]>=1000?'17px':WHEEL[i]>=100?'19px':'20px')+' Jua, sans-serif'; g.textAlign='right';
       if(WHEEL[i]){ const t=String(WHEEL[i]); g.fillText(t,r-12,7); const im=EMO_IMG['🌰'], tw=g.measureText(t).width;
         if(im&&im.complete&&im.naturalWidth) g.drawImage(im,r-12-tw-26,-12,26,25); else g.fillText('🌰',r-12-tw-1,7); }
       else g.fillText('꽝',r-12,7);
@@ -2764,6 +2808,85 @@ function playPuzzle(pi,n){
   draw();
 }
 
+/* ---------- 🔔 눈꽃 종치기 ----------
+   나·몽키·꿀꿀이의 카드가 차례로 펼쳐져요. 펼쳐진 카드에서 같은 그림이 '딱 5개'가 되면 먼저 종을 쳐요.
+   친구들도 조금 늦게 종을 쳐요. 맞게 치면 +1, 5개가 아닐 때 치면 -1. 카드 30장 · 점점 빨라짐. */
+const BELL_PICS=['🌰','⛄','🎄','🎁'];
+const BELL_RIVALS=[{em:'🐵',name:'몽키'},{em:'🐷',name:'꿀꿀이'}];
+function startBell(){
+  const TOTAL=30;
+  const slots=[null,null,null];          // 0: 나, 1: 몽키, 2: 꿀꿀이 — 맨 위에 펼쳐진 카드
+  const score=[0,0,0]; let wrong=0, flips=0, turn=0, over=false, flipT=null, cpuT=[], lockUntil=0, ready=false;
+  openModal(parkHead('눈꽃 종치기',true)+`<div class="panel-body">
+    <div class="bellbar"><span class="gstat">남은 카드 <b id="blLeft">${TOTAL}</b></span><span class="gstat">내 점수 <b id="blMe">0</b></span>
+      <span class="gstat">${emo('🐵')} 몽키 <b id="blR1">0</b></span><span class="gstat">${emo('🐷')} 꿀꿀이 <b id="blR2">0</b></span></div>
+    <div class="belltable">
+      <div class="bellseat" id="bs1"><div class="bellwho">${emo('🐵')} 몽키</div><div class="bellcard" id="bc1"></div></div>
+      <div class="bellseat" id="bs2"><div class="bellwho">${emo('🐷')} 꿀꿀이</div><div class="bellcard" id="bc2"></div></div>
+      <div class="bellseat me" id="bs0"><div class="bellwho">${emo(S.animal)} 나</div><div class="bellcard" id="bc0"></div></div>
+      <button class="bellbtn" id="blBell" aria-label="종 치기">🔔<small>종 치기 (스페이스바)</small></button>
+    </div>
+    <div class="bellmsg" id="blMsg">펼쳐진 카드에서 <b>같은 그림이 딱 5개</b>가 되면 종을 쳐요! 준비~</div>
+    <div id="blEnd"></div></div>`,'wide');
+  const cardHTML=c=>c?`<div class="bpics n${c.n}">${Array(c.n).fill(`<span>${c.p}</span>`).join('')}</div>`:'<div class="bempty">?</div>';
+  const draw=()=>{ for(let i=0;i<3;i++){ const el=$('bc'+i); if(el) el.innerHTML=cardHTML(slots[i]); }
+    $('blLeft').textContent=TOTAL-flips; $('blMe').textContent=score[0]; $('blR1').textContent=score[1]; $('blR2').textContent=score[2]; };
+  const counts=()=>{ const m={}; slots.forEach(c=>{ if(c) m[c.p]=(m[c.p]||0)+c.n; }); return m; };
+  const isFive=()=>Object.values(counts()).some(v=>v===5);
+  const msg=(t,cls)=>{ const m=$('blMsg'); if(m){ m.className='bellmsg '+(cls||''); m.innerHTML=t; } };
+  const clearCpu=()=>{ cpuT.forEach(clearTimeout); cpuT=[]; };
+  function speed(){ return Math.max(900, 2000 - flips*40); }   // 카드 펼치는 간격: 2초 → 0.9초
+  function flip(){
+    if(over) return;
+    if(flips>=TOTAL){ end(); return; }
+    // 5개가 자주 나오도록 가끔은 일부러 맞춰 줌
+    let c={p:pickOne(BELL_PICS), n:1+Math.floor(Math.random()*5)};
+    const cur=counts(); const others=slots.filter((s,i)=>s&&i!==turn);
+    if(Math.random()<.35 && others.length){ const o=pickOne(others); const have=others.filter(s=>s.p===o.p).reduce((a,s)=>a+s.n,0); if(have<5){ c={p:o.p,n:5-have}; } }
+    slots[turn]=c; flips++; turn=(turn+1)%3; sfx('blip');
+    const seat=$('bs'+((turn+2)%3)); if(seat){ seat.classList.remove('flipped'); void seat.offsetWidth; seat.classList.add('flipped'); }
+    draw(); ready=true; clearCpu();
+    if(isFive()){   // 친구들도 종을 치려고 해요 (반응 시간 1.0~2.0초, 점점 빨라짐)
+      [1,2].forEach(r=>cpuT.push(setTimeout(()=>ring(r), Math.max(650,(1000+Math.random()*1000)-flips*12))));
+    }
+    flipT=setTimeout(flip, speed());
+  }
+  function ring(who){
+    if(over||!ready||performance.now()<lockUntil) return;
+    const ok=isFive();
+    if(who===0){ const b=$('blBell'); if(b){ b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); } }
+    if(ok){
+      clearCpu(); clearTimeout(flipT); lockUntil=performance.now()+900;
+      score[who]++; sfx(who===0?'correct':'bell');
+      const what=Object.entries(counts()).find(([p,v])=>v===5)[0];
+      if(who===0){ const [x,y]=elCenter($('blBell')); burst(x,y,{n:20,speed:220,g:160,life:1,size:4}); msg(`🎉 딩동! ${what} 5개를 내가 먼저 찾았어요! +1`,'good'); }
+      else msg(`${BELL_RIVALS[who-1].em} ${BELL_RIVALS[who-1].name}가 먼저 쳤어요! (${what} 5개)`,'bad');
+      for(let i=0;i<3;i++) slots[i]=null;   // 펼쳐진 카드를 모두 가져가요
+      draw(); ready=false; flipT=setTimeout(flip, 1100);
+    } else if(who===0){
+      wrong++; score[0]=Math.max(0,score[0]-1); sfx('wrong'); lockUntil=performance.now()+500;
+      msg('😵 앗, 딱 5개인 그림이 없어요! -1','bad'); draw();
+    }
+  }
+  function end(){
+    over=true; clearTimeout(flipT); clearCpu();
+    const best=Math.max(score[1],score[2]), win=score[0]>best;
+    const reward=Math.min(30, score[0]*3 + (win?6:0));
+    $('blEnd').innerHTML=`<div class="cdone"><div class="feedback ${win?'good':'bad'}" style="text-align:center;margin:0">
+      <div class="big">${win?'🏆 내가 1등!':score[0]===best?'🤝 비겼어요!':'😅 아쉽게 졌어요!'}</div>
+      나 ${score[0]}점 · 🐵 몽키 ${score[1]}점 · 🐷 꿀꿀이 ${score[2]}점${wrong?` · 잘못 친 종 ${wrong}번`:''}<br>
+      도토리 <b>🌰 ${reward}</b> 받았어요!${win?' (1등 보너스 포함)':''}
+      <div class="rowbtns"><button class="btn green" id="blAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div></div></div>`;
+    if(reward) parkCoins(reward,$('blEnd')); if(win) confetti(60); else sfx('pop');
+    $('blAgain').onclick=startBell;
+  }
+  $('blBell').onclick=()=>ring(0);
+  const onKey=e=>{ if(e.code==='Space'||e.key===' '){ e.preventDefault(); e.stopPropagation(); if(!e.repeat) ring(0); } };
+  addEventListener('keydown',onKey,true);
+  parkCleanup=()=>{ over=true; clearTimeout(flipT); clearCpu(); removeEventListener('keydown',onKey,true); };
+  draw(); flipT=setTimeout(flip,1200);
+}
+
 /* =========================================================
    HELP & ENDING
    ========================================================= */
@@ -2776,9 +2899,9 @@ function openHelp(){
     <li>주민의 이야기를 듣고 퀴즈를 풀어요.</li>
     <li>문제를 <b>${Math.round(S.passRate*100)}% 이상</b> 맞히면 통과! 다음 단계의 자물쇠🔒가 풀려요.</li>
     <li>정답마다 🌰10, 첫 통과 보너스 🌰50, 만점 보너스 🌰30을 받아요. 다시 풀어도 도토리를 모을 수 있어요.</li>
-    <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🧩 동해 풍경 퍼즐로 도토리를 더 모아요.</li>
+    <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🧩 동해 풍경 퍼즐, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
     <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 10개씩 받아요.</li>
-    <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 퀴즈를 마칠 때 은행원 🐷 꿀꿀이가 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
+    <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
     <li>🛖 상점에서 <b>구매하기</b>를 눌러 아이템을 사고, 상점의 <b>착용/설치·해제하기</b> 버튼으로 꾸며요. <b>내 아이템</b> 탭에서 가진 것만 모아 볼 수 있어요.</li>
     <li>🧪 <b>마법 시럽</b>을 사서 퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요.</li>
     <li>마을 장식은 끌어서 옮길 수 있고, 누르면 효과가 나타나요. 캐릭터도 눌러 보세요!</li></ul>
