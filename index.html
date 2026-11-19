@@ -451,6 +451,20 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 .bankgrid .item .btn{font-size:15px;padding:8px 14px}
 .loanbox{background:#fff3c4;border-radius:12px;padding:6px 10px;font-size:14px;line-height:1.45;color:#7a5a12;word-break:keep-all}
 #debtPill{background:#ffe0dd;color:#b8433f;cursor:pointer}
+/* 🚨 경제 위기: 마을 하늘이 잿빛으로 (필터 대신 반투명 막을 덮어서 가볍게) */
+#crisisPill{background:#3b3f5c;color:#fff;cursor:pointer;pointer-events:auto;animation:crisisBlink 1.2s ease-in-out infinite alternate}
+@keyframes crisisBlink{from{opacity:.75}to{opacity:1}}
+#crisisTint{position:absolute;inset:0;z-index:5000;pointer-events:none;background:linear-gradient(rgba(60,60,80,.5),rgba(90,80,70,.3));opacity:0;transition:opacity 2s}
+html.crisis #crisisTint{opacity:1}
+.crisisNews{background:#2f3350;color:#fff;border-radius:14px;padding:10px 14px;font-family:'Jua';font-size:clamp(17px,2.2vw,22px);text-align:center;margin-bottom:10px}
+.crisisNews small{display:block;font-family:'Gowun Dodum';font-size:13px;opacity:.8;margin-top:2px}
+.crisisGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.crisisGrid .item{text-align:left}
+.crisisFx{margin:0;padding-left:1.2em;font-size:14.5px;line-height:1.6;word-break:keep-all}
+.goldbar{height:12px;background:#eee3cc;border-radius:99px;overflow:hidden;margin:6px 0}.goldbar i{display:block;height:100%;background:linear-gradient(90deg,#f5c542,#ffdf6b)}
+.crisisTag{display:inline-block;font-size:12px;background:#3b3f5c;color:#fff;border-radius:99px;padding:1px 8px;margin-left:4px;vertical-align:2px}
+.item .pr s{opacity:.55;font-size:.85em;margin-right:3px}
+@media (max-width:640px){.crisisGrid{grid-template-columns:1fr}}
 /* 💸 파산: 30초 동안 화면 전체가 흑백 */
 html.bankrupt #world, html.bankrupt #hud, html.bankrupt #fx, html.bankrupt #toast{filter:grayscale(1) brightness(.82) contrast(1.05);transition:filter 1.5s}
 #world, #hud{transition:filter 1.5s}
@@ -728,6 +742,7 @@ img.emo{width:1.375em;height:1.331em;display:inline-block;vertical-align:-.251em
   <div id="buildings"></div>
   <div id="decorLayer"></div>
   <div id="petLayer"></div>
+  <div id="crisisTint"></div>
   <div id="avatar"></div>
   <div id="labelLayer"></div>
 </div>
@@ -739,6 +754,7 @@ img.emo{width:1.375em;height:1.331em;display:inline-block;vertical-align:-.251em
   <div class="pill" id="coinPill">🌰 <span id="coinNum">0</span></div>
   <div class="pill" id="progPill">🔑 <span id="progNum">0</span>/6</div>
   <div class="pill hidden" id="debtPill" title="눈꽃 은행에 갚을 도토리"><svg class="won" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="9" fill="#f5c542" stroke="#c9962a" stroke-width="1.5"/><path d="M-5.5 -4.5 L-3 4.5 L0 -2.5 L3 4.5 L5.5 -4.5" stroke="#7a5a12" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M-6.8 -0.8 H6.8 M-6.8 1.9 H6.8" stroke="#7a5a12" stroke-width="1.1" stroke-linecap="round"/></svg> 빚 <span id="debtNum">0</span></div>
+  <div class="pill hidden" id="crisisPill" title="눈꽃마을 경제 위기 소식 보기">🚨 경제 위기 <span id="crisisLeft"></span></div>
   <button class="hbtn solarbtn hidden" id="btnSolar" onclick="showReadySolar()">⚡ 전기가 만들어졌어요!</button>
   <div class="spacer"></div>
   <button class="hbtn" id="btnHome">🏡 처음으로</button>
@@ -1474,7 +1490,7 @@ function drawAurora(now){
 const PARTS_MAX=450;
 let last=performance.now(), LITE=false, liteClean=false;   // LITE: 핀볼 중에는 오로라·눈·장식 효과를 쉬어요
 function frame(now){
-  const dt=Math.min(.05,(now-last)/1000); last=now;
+  const dt=Math.max(0,Math.min(.05,(now-last)/1000)); last=now;   // 시간이 거꾸로 가는 일이 없게 (탭 전환 등)
   if(LITE){
     if(!parts.length){ if(!liteClean){ cx.clearRect(0,0,W,H); liteClean=true; } requestAnimationFrame(frame); return; }
     liteClean=false; flakes.length=0;
@@ -2108,7 +2124,7 @@ function solarUI(){
 // 발전기 하나를 누르면 그 발전기의 전기만 팔아요
 function sellSolar(k){
   if(!solarFull(k)) return;
-  solarP()[k]=0; S.solarEarned=(S.solarEarned||0)+SOLAR.earn; addCoins(SOLAR.earn);   // addCoins 안에서 저장돼요
+  solarP()[k]=0; S.solarEarned=(S.solarEarned||0)+SOLAR.earn; econAdd('game',SOLAR.earn); addCoins(SOLAR.earn);   // addCoins 안에서 저장돼요
   const el=solarEl(k);
   if(el){ const [x,y]=elCenter(el,.3); textPop(x,y-30,`⚡ 전기 판매 +${SOLAR.earn} 🌰`,'#fff6a8'); burst(x,y,{n:12,chars:['⚡','🌰'],size:18,speed:150,g:120,life:1.1}); const bar=el.querySelector('.charge i'); if(bar) bar.style.width='0%'; }
   sfx('coin'); solarUI();
@@ -2273,7 +2289,7 @@ function typingStop(){ clearInterval(typeTimer); typeTimer=null; }
 function head(st,sub){ return `<div class="panel-head"><div class="host">${emo(st.host)}</div><h2>${st.icon} ${st.place}<div style="font-size:.6em;color:#6c8f78">${sub||st.topic}</div></h2><button class="closeX" onclick="quitQuiz()">✕</button></div>`; }
 function openStage(i){
   const st=STAGES[i];
-  QZ={si:i, line:0, qi:0, correct:0, earned:0, results:[], list:null, syrup:false, points:0, combo:0, maxCombo:0};
+  QZ={si:i, line:0, qi:0, correct:0, earned:0, results:[], list:null, syrup:false, points:0, combo:0, maxCombo:0, review:!!(S.stages[i]&&S.stages[i].cleared)};   // review: 이미 통과한 장소를 다시 푸는 '복습'
   renderIntro();
 }
 function quitQuiz(){ if(QZ && QZ.list && QZ.qi<QZ.list.length && !confirm('퀴즈를 그만두고 마을로 돌아갈까요? (얻은 도토리는 그대로 남아요)')) return; QZ=null; closeModal(); renderBuildings(); }
@@ -2353,9 +2369,14 @@ function syrupPrep(q){
    난이도: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서 맞히기·분류하기(어려움) 20점
    ⚡ 빠른 정답: 제한 시간 안에 맞히면 +50%  (OX 7초 · 객관식 12초 · 순서·분류 25초)
    🔥 연속 콤보: 3문제 연속으로 맞히면 그다음부터 점수 ×2 (틀리면 콤보가 끊겨요)
-   🌰 도토리는 점수와 따로: 정답마다 10개 */
+   🌰 도토리는 점수와 따로: 정답마다 COIN_PER_Q개 (콤보 중 2배) */
 const SCORE_RULE={ox:{pts:10,limit:7,lv:'쉬움'}, mc:{pts:15,limit:12,lv:'보통'}, order:{pts:20,limit:25,lv:'어려움'}, sort:{pts:20,limit:25,lv:'어려움'}};
-const COMBO_AT=3, COIN_PER_Q=10;
+// 💰 도토리 균형: 퀴즈를 푸는 것이 가장 많이 버는 방법이 되도록!
+//   정답 1개 🌰1000 (🔥3연속 콤보부터 ×2 = 🌰2000) · 첫 통과 🌰5000 · 만점 🌰3000
+//   → 한 장소(10문제)를 다 맞히면 🌰18000 이상. 미니게임 최대(블록 쌓기 🌰5000 등)보다 훨씬 많아요.
+const COMBO_AT=3, COIN_PER_Q=1000, FIRST_CLEAR_BONUS=5000, PERFECT_BONUS=3000;
+// 📚 복습: 이미 통과한 장소를 다시 풀면 정답 도토리 ×2, 다시 통과하면 복습 보너스 🌰4000
+const REVIEW_MULT=2, REVIEW_BONUS=4000;
 let qTimerT=null;
 function stopQTimer(){ clearInterval(qTimerT); qTimerT=null; }
 function renderQuestion(){
@@ -2439,12 +2460,13 @@ function grade(ok, extra, el){
     const fast=secs<=R.limit, speed=fast?Math.round(R.pts*.5):0;
     QZ.combo++; QZ.maxCombo=Math.max(QZ.maxCombo,QZ.combo);
     const comboOn=QZ.combo>=COMBO_AT, pts=(R.pts+speed)*(comboOn?2:1);
-    QZ.points+=pts; QZ.correct++; QZ.earned+=COIN_PER_Q; addCoins(COIN_PER_Q);
+    const coin=COIN_PER_Q*(comboOn?2:1)*(QZ.review?REVIEW_MULT:1);   // 🔥 콤보 중에는 2배 · 📚 복습 중에는 또 2배
+    QZ.points+=pts; QZ.correct++; QZ.earned+=coin; addCoins(coin); econAdd('quiz',coin);
     if(has('bell')){ sfx('bell'); burst(x,y,{n:12,chars:['🔔','✨'],size:22,speed:220,g:200,life:1.2}); } else sfx('correct');
     burst(x,y,{n:26,speed:260,life:1,g:220,size:4});
-    textPop(x-50,y-24,`+${pts}점`,'#ffe066'); setTimeout(()=>textPop(x+50,y-24,`+${COIN_PER_Q} 🌰`,'#fff6a8'),150);
+    textPop(x-50,y-24,`+${pts}점`,'#ffe066'); setTimeout(()=>textPop(x+50,y-24,`+${coin} 🌰`,'#fff6a8'),150);
     if(comboOn){ const cb=QZ.combo; setTimeout(()=>textPop(x,y-60,`🔥 ${cb}연속 콤보! ×2`,'#ff8a65'),300); if(cb===COMBO_AT) sfx('fanfare'); }
-    scoreLine=`<div class="gain"><span class="gainPts">⭐ 점수 +${pts}점</span><span class="gainCoin">🌰 도토리 +${COIN_PER_Q}개</span></div>
+    scoreLine=`<div class="gain"><span class="gainPts">⭐ 점수 +${pts}점</span><span class="gainCoin">🌰 도토리 +${coin}개${comboOn?' (콤보 ×2)':''}${QZ.review?` (📚 복습 ×${REVIEW_MULT})`:''}</span></div>
       <div class="gainWhy">${R.lv} ${R.pts}점${speed?` + ⚡빠른 정답 ${speed}점 (${secs.toFixed(1)}초)`:` (⏱ ${secs.toFixed(1)}초 · 빠른 정답 ${R.limit}초 넘음)`}${comboOn?` → 🔥 ${QZ.combo}연속 콤보 ×2`:QZ.combo>1?` · 🔥 ${QZ.combo}연속 (${COMBO_AT}연속부터 ×2)`:''}</div>`;
   } else {
     sfx('wrong');
@@ -2464,15 +2486,16 @@ function showResult(){
   const i=QZ.si, st=STAGES[i], n=QZ.list.length, c=QZ.correct;
   const ratio=c/n, pass=ratio>=S.passRate-1e-9;
   const stars= ratio===1?3: ratio>=0.85?2: pass?1:0;
-  const rec=S.stages[i]; let bonus=0, firstClear=false, perfectBonus=0;
-  if(pass && !rec.cleared){ rec.cleared=true; bonus=50; firstClear=true; }
-  if(stars===3 && !rec.perfectGiven){ rec.perfectGiven=true; perfectBonus=30; }
+  const rec=S.stages[i]; let bonus=0, firstClear=false, perfectBonus=0, reviewBonus=0;
+  if(pass && !rec.cleared){ rec.cleared=true; bonus=FIRST_CLEAR_BONUS; firstClear=true; }
+  if(pass && QZ.review){ reviewBonus=REVIEW_BONUS; bonus+=reviewBonus; rec.reviews=(rec.reviews||0)+1; }   // 📚 복습 통과 보너스
+  if(stars===3 && !rec.perfectGiven){ rec.perfectGiven=true; perfectBonus=PERFECT_BONUS; }
   rec.best=Math.max(rec.best,c); rec.stars=Math.max(rec.stars,stars);
   weekRecord(i,c,stars,QZ.points);   // 이번 주 랭킹 점수 (장소마다 가장 높은 점수)
   rec.bestPoints=Math.max(rec.bestPoints||0,QZ.points);
   // 🌱 파산(신용도 하락) 뒤 퀴즈 장소를 통과하면 신용도 회복
   if(pass && S.creditDown){ S.creditDown=false; S.bankrupt=false; setTimeout(()=>toast('🌱 퀴즈를 통과해서 신용도가 회복됐어요! 다시 대출도 받고 눈꽃랜드에도 갈 수 있어요.'),1200); }
-  if(bonus+perfectBonus) addCoins(bonus+perfectBonus);
+  if(bonus+perfectBonus){ addCoins(bonus+perfectBonus); econAdd('quiz',bonus+perfectBonus); }
   save(); submitScore();
   const isFinal = firstClear && i===STAGES.length-1;
   let msg='';
@@ -2488,7 +2511,7 @@ function showResult(){
     <div class="feedback ${pass?'good':'bad'}" style="text-align:center">
       <div class="big">${pass?'통과! 정말 잘했어요 🎉':'조금만 더 힘내요!'}</div>
       <div class="gain" style="justify-content:center"><span class="gainPts">⭐ 얻은 점수 ${QZ.points}점</span><span class="gainCoin">🌰 얻은 도토리 ${QZ.earned+bonus+perfectBonus}개</span></div>
-      <div class="gainWhy">🔥 최고 콤보 ${QZ.maxCombo}연속 · 이 장소 최고 점수 ${rec.bestPoints}점${bonus?` · 도토리: 첫 통과 보너스 +${bonus}`:''}${perfectBonus?` · 만점 보너스 +${perfectBonus}`:''}</div>${msg}
+      <div class="gainWhy">🔥 최고 콤보 ${QZ.maxCombo}연속 · 이 장소 최고 점수 ${rec.bestPoints}점${bonus-reviewBonus?` · 도토리: 첫 통과 보너스 +${bonus-reviewBonus}`:''}${reviewBonus?` · 📚 복습 보너스 +${reviewBonus} (복습 ${rec.reviews}번째)`:''}${perfectBonus?` · 만점 보너스 +${perfectBonus}`:''}</div>${msg}
     </div>
     <div class="rowbtns">
       <button class="btn cream" id="rAgain">🔁 다시 도전</button>
@@ -2517,24 +2540,25 @@ const BANKRUPT_AT=3;   // 연체(다음에 갚기) 3번째 → 파산
 const loanTotal=()=>LOAN.principal+LOAN.interest;
 /* ---------- 💰 도토리 예금 (저축): 맡기고 10분 뒤 이자 10% ---------- */
 const DEPOSIT={mins:10, rate:.1, choices:[20,50,100,200,500]};
-const depositInterest=a=>Math.max(1,Math.floor(a*DEPOSIT.rate));
+const depositInterest=(a,r)=>Math.max(1,Math.floor(a*(r||DEPOSIT.rate)));   // r: 맡길 때 정해진 이자율 (경제 위기 때는 더 높아요)
+const depositRateNow=()=>(typeof crisisOn==='function'&&crisisOn())?CRISIS.depRate:DEPOSIT.rate;
 const depositLeftMs=()=>S.deposit?Math.max(0,S.deposit.at+DEPOSIT.mins*60000-Date.now()):0;
 const depositPct=()=>S.deposit?Math.min(100,100-depositLeftMs()/(DEPOSIT.mins*600)):0;
 const fmtLeft=ms=>{ const s=Math.ceil(ms/1000); return `${Math.floor(s/60)}분 ${String(s%60).padStart(2,'0')}초`; };
 function makeDeposit(n,btn){
   if(S.deposit||n<=0||S.coins<n) return;
-  S.coins-=n; S.deposit={amt:n,at:Date.now()}; save(); renderHud();
+  const rate=depositRateNow(); S.coins-=n; S.deposit={amt:n,at:Date.now(),rate}; save(); renderHud();
   if(btn){ const [x,y]=elCenter(btn); burst(x,y,{n:10,chars:['💰','🌰'],size:20,speed:160,g:200,life:1.1}); textPop(x,y-20,`-${n} 🌰 예금`,'#fff6a8'); }
-  sfx('coin'); openBank(`🌰 <b>${n}</b>개를 맡았어! <b>${DEPOSIT.mins}분</b> 뒤에 이자 <b>🌰 ${depositInterest(n)}</b>을 붙여서 돌려줄게. 그동안 퀴즈도 풀고 놀다 와~ 꿀꿀!`);
+  sfx('coin'); openBank(`🌰 <b>${n}</b>개를 맡았어! <b>${DEPOSIT.mins}분</b> 뒤에 이자 <b>🌰 ${depositInterest(n,rate)}</b>${rate!==DEPOSIT.rate?` (경제 위기 특별 금리 ${rate*100}%!)`:''}을 붙여서 돌려줄게. 그동안 퀴즈도 풀고 놀다 와~ 꿀꿀!`);
 }
 function withdrawDeposit(btn){
   const dep=S.deposit; if(!dep) return;
-  const done=depositLeftMs()<=0, it=done?depositInterest(dep.amt):0;
+  const done=depositLeftMs()<=0, it=done?depositInterest(dep.amt,dep.rate):0;
   if(!done && !confirm(`아직 만기가 아니에요! 지금 찾으면 이자 없이 원금 🌰 ${dep.amt}만 돌려받아요.\n그래도 찾을까요?`)) return;
   S.deposit=null; S.saved=(S.saved||0)+it; addCoins(dep.amt+it); save(); renderHud();
   if(btn){ const [x,y]=elCenter(btn); burst(x,y,{n:20,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${dep.amt+it} 🌰`,'#fff6a8'); }
   sfx(done?'fanfare':'coin');
-  openBank(done?`🎉 원금 🌰 ${dep.amt} + 이자 🌰 ${it} = <b>🌰 ${dep.amt+it}</b>! 기다린 만큼 불어났지? 이게 바로 <b>저축과 이자</b>야. 꿀꿀!`:`원금 🌰 ${dep.amt}을 돌려줬어. 만기까지 기다렸다면 이자 🌰 ${depositInterest(dep.amt)}을 더 받을 수 있었는데~ 꿀꿀.`);
+  openBank(done?`🎉 원금 🌰 ${dep.amt} + 이자 🌰 ${it} = <b>🌰 ${dep.amt+it}</b>! 기다린 만큼 불어났지? 이게 바로 <b>저축과 이자</b>야. 꿀꿀!`:`원금 🌰 ${dep.amt}을 돌려줬어. 만기까지 기다렸다면 이자 🌰 ${depositInterest(dep.amt,dep.rate)}을 더 받을 수 있었는데~ 꿀꿀.`);
 }
 const lowCredit=()=>(S.missed||0)>=ANGRY_AFTER || !!S.creditDown;   // 신용이 낮으면 새 대출 금지 (조금이라도 갚으면 회복)
 const canLoan=()=>!lowCredit() && (S.debt||0)+loanTotal()<=LOAN.maxDebt && qty('syrup')<MAX_QTY.syrup;
@@ -2552,8 +2576,8 @@ function openBank(msg){
     <div class="bankgrid">
       <div class="item">
         <div class="em">💰</div><div class="nm">도토리 예금 (저축)</div>
-        <div class="ds">도토리를 맡기면 <b>${DEPOSIT.mins}분</b> 뒤에 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려줘요. 다 되기 전에 찾으면 이자는 없어요.</div>
-        ${dep?`<div class="loanbox">맡긴 돈 🌰 ${dep.amt} → 만기 때 <b>🌰 ${dep.amt+depositInterest(dep.amt)}</b><div class="depbar"><i id="depFill" style="width:${depositPct()}%"></i></div><span id="depLeft">${depLeft>0?'⏳ '+fmtLeft(depLeft)+' 남았어요':'✅ 만기! 이자를 받을 수 있어요'}</span></div>
+        <div class="ds">도토리를 맡기면 <b>${DEPOSIT.mins}분</b> 뒤에 <b>이자 ${depositRateNow()*100}%</b>를 붙여 돌려줘요.${depositRateNow()!==DEPOSIT.rate?` <span class="crisisTag">🚨 경제 위기 특별 금리 (평소 ${DEPOSIT.rate*100}%)</span>`:''} 다 되기 전에 찾으면 이자는 없어요.</div>
+        ${dep?`<div class="loanbox">맡긴 돈 🌰 ${dep.amt} (이자 ${(dep.rate||DEPOSIT.rate)*100}%) → 만기 때 <b>🌰 ${dep.amt+depositInterest(dep.amt,dep.rate)}</b><div class="depbar"><i id="depFill" style="width:${depositPct()}%"></i></div><span id="depLeft">${depLeft>0?'⏳ '+fmtLeft(depLeft)+' 남았어요':'✅ 만기! 이자를 받을 수 있어요'}</span></div>
           <button class="btn ${depLeft>0?'cream':'gold'}" id="bWithdraw">${depLeft>0?'↩ 지금 찾기 (이자 없음)':'🎉 원금 + 이자 찾기'}</button>`
         :`<div class="loanbox">얼마를 맡길까요? (내 도토리 🌰 ${S.coins})</div>
           <div class="depamt">${DEPOSIT.choices.map(n=>`<button data-dep="${n}" ${S.coins>=n?'':'disabled'}>🌰 ${n}</button>`).join('')}<button class="depall" data-dep="${S.coins}" ${S.coins>0?'':'disabled'}>💰 전부 맡기기 (🌰 ${S.coins})</button></div>`}
@@ -2669,6 +2693,88 @@ setInterval(()=>{
   bankerVisit(inPark ? ()=>openPark() : ()=>{ closeModal(); renderBuildings(); renderHud(); });
 },5000);
 
+/* ---------- 🚨 눈꽃마을 경제 위기 (1997년 IMF 외환 위기처럼) ----------
+   게임하는 동안 아무 때나 찾아와요. 4분 동안:
+   · 💸 환율이 올라 수입 재료값이 뛰어서 → 상점 물건 값 2배 (물가 상승)
+   · 🏦 은행 예금 이자 10% → 30% (실제 외환 위기 때도 금리가 20% 넘게 올랐어요)
+   · 📉 증권거래소 물건 값이 크게 떨어져서 시작 (주가 폭락)
+   · 🥇 '금 모으기 운동': 도토리를 모아 내면 위기가 일찍 끝나고, 경제가 회복되면 1.2배로 돌려받아요 */
+const CRISIS={mins:4, gapMins:8, chance:.06, price:2, depRate:.3, stock:.6, payback:1.2};   // chance: 20초마다 6% → 평균 5~6분에 한 번
+const crisisOn=()=>!!(S&&S.crisis&&S.crisis.until>Date.now());
+/* 💡 도토리를 어디서 벌었는지 기록해요 (지난 경제 위기 이후부터).
+   공부(퀴즈) 없이 눈꽃랜드 놀이·태양광으로만 도토리가 불어나면 마을 경제에 '거품'이 끼어 위기가 더 자주 와요. */
+function econAdd(src,n){ if(!S||!(n>0)) return; const e=S.econ||(S.econ={game:0,quiz:0}); e[src]=(e[src]||0)+n; }
+function gameShare(){ const e=S.econ||{}, g=e.game||0, q=e.quiz||0; return g+q<3000 ? 0 : g/(g+q); }   // 아직 조금밖에 안 벌었으면 따지지 않아요
+function crisisChance(){ const s=gameShare(); return s<=.5 ? CRISIS.chance : CRISIS.chance + (s-.5)*2*.3; }   // 놀이 비율 100%면 20초마다 36%
+function crisisGapMs(){ return (gameShare()>=.7 ? 3 : CRISIS.gapMins)*60000; }                              // 놀이 위주면 위기 사이 쉬는 시간도 짧아요
+const priceOf=it=>crisisOn()?it.price*CRISIS.price:it.price;
+function startCrisis(){
+  if(crisisOn()) return;
+  S.crisis={until:Date.now()+CRISIS.mins*60000, gold:0, goal:Math.max(1000,Math.round(S.coins*.3/100)*100), bubble:gameShare()>.5};   // 모을 목표: 내 도토리의 30%
+  save(); crisisUI(); sfx('bankrupt');
+  const modalOpen=!$('modal').classList.contains('hidden');
+  if(!modalOpen && !QZ){ keys.clear(); openCrisis(true); }
+  else toast('🚨 <b>속보!</b> 눈꽃마을에 <b>경제 위기</b>가 찾아왔어요! 위쪽 🚨 버튼을 눌러 소식을 확인해요.');
+}
+function endCrisis(early){
+  const c=S.crisis; if(!c) return;
+  const back=Math.round((c.gold||0)*CRISIS.payback);
+  S.crisis=null; S.crisisEndedAt=Date.now(); S.econ={game:0,quiz:0}; if(back) S.coins+=back; save(); renderHud(); crisisUI();
+  sfx('fanfare'); confetti(60);
+  toast(`🌤️ ${early?'모두가 힘을 모아 ':''}눈꽃마을 경제가 <b>회복</b>됐어요!${back?` 금 모으기에 낸 도토리를 <b>🌰 ${back}</b>으로 돌려받았어요!`:''}`);
+  if(!$('modal').classList.contains('hidden') && $('crisisBody')) closeModal();
+}
+function crisisUI(){
+  const on=crisisOn(); document.documentElement.classList.toggle('crisis',on);
+  const p=$('crisisPill'); if(!p) return; p.classList.toggle('hidden',!on);
+  if(on){ const s=Math.ceil((S.crisis.until-Date.now())/1000); $('crisisLeft').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+}
+function donateGold(n,btn){
+  const c=S.crisis; if(!crisisOn()||n<=0||S.coins<n) return;
+  S.coins-=n; c.gold=(c.gold||0)+n; save(); renderHud(); sfx('coin');
+  if(btn){ const [x,y]=elCenter(btn); burst(x,y,{n:12,chars:['🥇','🌰'],size:20,speed:160,g:200,life:1.1}); textPop(x,y-20,`🥇 -${n}`,'#fff6a8'); }
+  if(c.gold>=c.goal) endCrisis(true); else openCrisis();
+}
+function openCrisis(first){
+  if(!crisisOn()){ toast('지금은 경제 위기가 아니에요. 🌤️'); return; }
+  const c=S.crisis, pct=Math.min(100,Math.round((c.gold||0)/c.goal*100)), need=Math.max(0,c.goal-(c.gold||0));
+  const opts=[...new Set([Math.round(S.coins*.1),Math.round(S.coins*.3),need].filter(n=>n>0))].sort((a,b)=>a-b);
+  openModal(`<div class="panel-head"><div class="host">📺</div><h2>🚨 눈꽃마을 경제 위기!<div style="font-size:.6em;color:#6c8f78">내 도토리 🌰 ${S.coins} · 남은 시간 <span id="crisisLeft2"></span></div></h2><button class="closeX" onclick="closeModal()">✕</button></div>
+   <div class="panel-body" id="crisisBody">
+    <div class="crisisNews">📢 속보: 눈꽃마을에 외화(달러)가 바닥났어요!<small>${first?'방금 들어온 소식이에요':'경제 위기가 이어지고 있어요'} · 1997년 우리나라 ‘IMF 외환 위기’와 비슷한 일이에요</small></div>
+    <div class="bubble" style="cursor:default;min-height:0;margin-bottom:10px">🐷 <b>꿀꿀이 은행원</b> : 큰일이야! 마을이 다른 나라에 갚아야 할 돈(달러)을 제때 갚지 못하게 됐어. 그래서 <b>IMF(국제통화기금)</b>에서 돈을 빌려 왔지. 달러 값(<b>환율</b>)이 치솟고, 문을 닫는 가게가 늘고, 일자리를 잃은 사람도 많아졌어… 꿀꿀.</div>
+    ${c.bubble?`<div class="bubble" style="cursor:default;min-height:0;margin-bottom:10px;background:#fff0e6">🦝 <b>너굴 중개인</b> : 요즘 마을 사람들이 <b>공부(퀴즈)는 안 하고 놀이로만</b> 도토리를 벌었대. 물건을 만들거나 실력을 쌓지 않고 돈만 늘면, 돈의 가치가 떨어지고 경제에 <b>거품</b>이 껴서 위기가 더 자주 찾아와! 📚 <b>퀴즈를 풀어 도토리를 벌면</b> 마을 경제가 튼튼해져.</div>`:''}
+    <div class="crisisGrid">
+      <div class="item"><div class="nm">📉 지금 마을에 생긴 일</div>
+        <ul class="crisisFx">
+          <li>💸 <b>물가 상승</b>: 환율이 올라 수입 재료값이 뛰었어요 → 상점 물건 값 <b>${CRISIS.price}배</b></li>
+          <li>🏦 <b>금리 상승</b>: 은행이 돈이 모자라 예금 이자를 올렸어요 → 예금 이자 <b>${DEPOSIT.rate*100}% → ${CRISIS.depRate*100}%</b></li>
+          <li>📉 <b>주가 폭락</b>: 증권거래소 물건 값이 크게 떨어졌어요 → 싸게 사 둘 기회일까요, 위험일까요?</li>
+        </ul></div>
+      <div class="item"><div class="nm">🥇 금 모으기 운동</div>
+        <div class="ds" style="flex:none">1998년, 약 350만 명의 국민이 집에 있던 금을 모아 나라 빚을 갚는 데 힘을 보탰어요. 우리도 도토리를 모아 마을을 살려요! 목표를 채우면 위기가 <b>바로 끝나고</b>, 회복되면 낸 도토리를 <b>${CRISIS.payback}배</b>로 돌려받아요.</div>
+        <div class="goldbar"><i style="width:${pct}%"></i></div>
+        <div style="font-size:14px">모은 도토리 🌰 ${c.gold||0} / 목표 🌰 ${c.goal} (${pct}%)</div>
+        <div class="depamt">${opts.length?opts.map(n=>`<button data-gold="${n}" ${S.coins>=n?'':'disabled'}>🥇 🌰 ${n}${n===need?' (목표까지)':''}</button>`).join(''):'<span style="font-size:14px">낼 도토리가 없어요. 퀴즈로 모아 와요!</span>'}</div></div>
+    </div>
+    <div class="rankinfo" style="margin-top:10px">💡 우리나라는 온 국민이 힘을 모으고 기업과 은행을 고쳐서, 2001년에 IMF에서 빌린 돈을 예정보다 일찍 모두 갚았어요. 가만히 기다려도 <b>${CRISIS.mins}분</b> 뒤에는 경제가 회복돼요.</div>
+    <div class="rowbtns"><button class="btn green" onclick="closeModal()">알겠어요!</button></div>
+   </div>`,'wide');
+  document.querySelectorAll('[data-gold]').forEach(b=>b.onclick=()=>donateGold(+b.dataset.gold,b));
+  crisisUI(); const l2=$('crisisLeft2'); if(l2) l2.textContent=$('crisisLeft').textContent;
+}
+let crisisTick=0;
+setInterval(()=>{
+  if(!S) return;
+  if(S.crisis && !crisisOn()){ endCrisis(false); return; }          // 시간이 다 되면 회복
+  crisisUI(); const l2=$('crisisLeft2'); if(l2) l2.textContent=$('crisisLeft').textContent;
+  if(++crisisTick%20) return;                                        // 새 위기는 20초마다 한 번씩만 검사
+  if(S.crisis || !$('start').classList.contains('hidden') || document.documentElement.classList.contains('bankrupt') || document.hidden) return;
+  if(Date.now()-(S.crisisEndedAt||0) < crisisGapMs()) return;         // 위기가 끝나고 한동안은 안 와요
+  if(performance.now() < 3*60000) return;                             // 게임을 켜고 처음 3분은 평화롭게
+  if(Math.random()<crisisChance()) startCrisis();
+},1000);
+
 /* ---------- 💸 파산: 연체 3번 → 30초 동안 흑백 화면 + 재산 압류 ----------
    빚은 없어지지만 도토리와 상점 아이템(장식·꾸미기·펫·하늘 효과·시럽)을 모두 압류해요.
    신용도는 바닥 → 대출 금지 · 눈꽃랜드 출입 금지. 퀴즈 장소를 하나 통과하면 회복돼요. */
@@ -2741,14 +2847,15 @@ function openShop(){
   openModal(`<div class="panel-head"><div class="host">${emo('🐿️')}</div><h2>다람이네 상점<div style="font-size:.6em;color:#6c8f78">내 도토리: 🌰 ${S.coins}</div></h2><button class="closeX" onclick="closeModal()">✕</button></div>
    <div class="panel-body">
     <div class="shopkeeper"><div class="bubble" id="shopTalk">🐿️ <b>다람이</b> : ${SHOP_LINES[Math.floor(Math.random()*SHOP_LINES.length)]}</div></div>
+    ${crisisOn()?`<div class="crisisNews" style="font-size:16px;cursor:pointer" onclick="openCrisis()">🚨 경제 위기로 환율이 올라 물건 값이 ${CRISIS.price}배가 됐어요!<small>위기가 끝나면 원래 값으로 돌아와요 · 눌러서 소식 보기</small></div>`:''}
     <div class="tabs">${tabs.map(([k,l])=>`<button class="${shopTab===k?'on':''}" data-t="${k}">${l}</button>`).join('')}</div>
     ${shopTab==='mine'&&!list.length?'<div class="bubble" style="cursor:default;min-height:0;text-align:center">아직 가진 아이템이 없어요! 퀴즈로 도토리🌰를 모아 아이템을 사 보세요.</div>':''}
     ${shopTab==='mine'&&list.length?'<div class="bubble" style="cursor:default;min-height:0;margin-bottom:12px;font-size:15px">💡 마을에 설치한 장식은 <b>끌어서 옮길 수</b> 있고, <b>누르면</b> 특별한 효과가 나타나요!</div>':''}
     <div class="shopgrid">${list.map(it=>{
-      const q=qty(it.id), mx=maxOf(it), full=q>=mx, can=!full&&S.coins>=it.price;
+      const q=qty(it.id), mx=maxOf(it), full=q>=mx, pr=priceOf(it), can=!full&&S.coins>=pr;
       return `<div class="item ${q?'on':''}"><div class="em">${it.em}</div><div class="nm">${it.name}</div><div class="ds">${it.desc}</div>
-        <div class="pr">🌰 ${it.price} <span class="cnt">· 보유 ${q}/${mx}개</span></div>
-        <button class="btn ${can?'green':'cream'}" data-buy="${it.id}" ${can?'':'disabled'}>${full?'✔ 최대 개수':(S.coins>=it.price?(q?'하나 더 사기 (+1)':'구매하기'):'도토리 부족')}</button>
+        <div class="pr">${pr!==it.price?`<s>🌰 ${it.price}</s>`:''}🌰 ${pr} <span class="cnt">· 보유 ${q}/${mx}개</span></div>
+        <button class="btn ${can?'green':'cream'}" data-buy="${it.id}" ${can?'':'disabled'}>${full?'✔ 최대 개수':(S.coins>=pr?(q?'하나 더 사기 (+1)':'구매하기'):'도토리 부족')}</button>
         ${q&&it.kind!=='potion'?`<button class="btn cream" data-eq="${it.id}" style="padding:6px 10px;font-size:13px">${has(it.id)?'해제하기':'착용/설치'}</button>`:''}${q&&it.kind==='potion'?'<div class="cnt">🧪 퀴즈 화면에서 마셔요</div>':''}
       </div>`;}).join('')}</div>
    </div>`,'wide');
@@ -2757,8 +2864,8 @@ function openShop(){
   document.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{ toggleEquip(b.dataset.eq); openShop(); });
 }
 function buy(id,btn){
-  const it=ITEMS.find(x=>x.id===id); if(!it||qty(id)>=maxOf(it)||S.coins<it.price) return;
-  S.coins-=it.price; S.qty[id]=qty(id)+1; if(!S.owned.includes(id)) S.owned.push(id); save(); renderHud();
+  const it=ITEMS.find(x=>x.id===id), pr=it&&priceOf(it); if(!it||qty(id)>=maxOf(it)||S.coins<pr) return;
+  S.coins-=pr; S.qty[id]=qty(id)+1; if(!S.owned.includes(id)) S.owned.push(id); save(); renderHud();
   const [x,y]=elCenter(btn); sfx('coin'); burst(x,y,{n:30,speed:240,g:200,life:1,size:4}); burst(x,y,{n:6,chars:[it.em],size:26,speed:180,g:200,life:1.2});
   if(it.kind!=='potion') equip(id);
   setTimeout(()=>{ openShop(); $('shopTalk').innerHTML = it.kind==='potion'
@@ -2870,11 +2977,12 @@ function startMarket(){
   const START=S.coins;   // 시작할 때 내 도토리 (손익 계산용)
   let day=1, preds=0, predN=0, done=false;
   const prices={}, prev={}, hold={}, pred={}; let news=[], results=[];
-  MKT_GOODS.forEach(g=>{ prices[g.k]=Math.max(3,Math.round(g.base*rnd(.85,1.15))); prev[g.k]=prices[g.k]; hold[g.k]=0; });
+  const crash=crisisOn();   // 🚨 경제 위기 때 시작하면 주가 폭락 상태로 시작
+  MKT_GOODS.forEach(g=>{ prices[g.k]=Math.max(crash?2:3,Math.round(g.base*rnd(.85,1.15)*(crash?CRISIS.stock:1))); prev[g.k]=prices[g.k]; hold[g.k]=0; });
   // 📈 주식 차트: 게임 시작 전 6일 동안의 가격도 만들어 두고, 하루 지날 때마다 이어 그려요
   const PRE=6, hist={};
   MKT_GOODS.forEach(g=>{ const a=[prices[g.k]]; let v=prices[g.k];
-    for(let i=0;i<PRE;i++){ v=Math.max(2,Math.min(99,Math.round(v/rnd(.88,1.12)))); a.unshift(v); } hist[g.k]=a; });
+    for(let i=0;i<PRE;i++){ v=Math.max(2,Math.min(99,Math.round(v/(crash&&i<2?rnd(.7,.8):rnd(.88,1.12))))); a.unshift(v); } hist[g.k]=a; });   // 폭락이면 최근 이틀 동안 뚝 떨어진 모양
   // 작은 선 차트 (빨강: 시작 때보다 오름 · 파랑: 내림 — 우리나라 주식 차트 색)
   function chartSVG(k){
     const a=hist[k], w=132, h=46, px=4, top=6, bot=6;
@@ -2904,6 +3012,7 @@ function startMarket(){
     openModal(exchHead(`시장 가격 게임 · ${day}/${MKT_DAYS}일째`,true)+`<div class="panel-body">
       <div class="mkstat"><span>📅 <b>${day}</b>/${MKT_DAYS}일</span><span>💰 내 도토리 <b>🌰 ${cash}</b></span><span>📦 물건 값 <b>🌰 ${goodsVal()}</b></span><span>📊 총재산 <b>🌰 ${tot}</b> <em class="${pf>0?'up':pf<0?'down':''}">(${pf>0?'+':''}${pf})</em></span></div>
       ${results.length?`<div class="mkres"><b>📊 어제 소식은 이렇게 됐어요!</b>${results.map(r=>`<div>${gOf(r.k).em} <b>${gOf(r.k).nm}</b> 🌰 ${r.from} → <b class="${r.to>r.from?'up':r.to<r.from?'down':''}">🌰 ${r.to}</b> · ${r.weak?'다른 일도 함께 일어나서 생각보다 조금만 움직였어요 (가격은 늘 예상대로 움직이지 않아요!)':MKT_WHY[r.t]}${r.p?(r.ok?` <span class="ok">✔ 예상 성공 +${MKT_PRED}</span>`:' <span class="no">✘ 예상 실패</span>'):''}</div>`).join('')}</div>`:''}
+      ${crash&&day===1?`<div class="crisisNews" style="font-size:16px">📉 경제 위기로 주가가 폭락했어요! 모든 물건 값이 뚝 떨어졌어요.<small>지금 싸게 사 두면 나중에 오를까요? 더 떨어질 수도 있어요 — 투자에는 위험이 따라요!</small></div>`:''}
       <div class="mktable">${MKT_GOODS.map(g=>{ const ch=prices[g.k]-prev[g.k];
         return `<div class="mkrow"><span class="mkem">${g.em}</span><span class="mknm">${g.nm}</span>
           <span class="mkpr">🌰 ${prices[g.k]} <small class="${ch>0?'up':ch<0?'down':''}">${ch>0?'▲'+ch:ch<0?'▼'+(-ch):'-'}</small></span>
@@ -2951,7 +3060,7 @@ function startMarket(){
 function parkOpen(){ return !S.creditDown; }   // 눈꽃랜드은 언제든지 들어갈 수 있음 (단, 신용도가 떨어지면 출입 금지)
 const PARK_BAN_MSG='🎡 신용도가 떨어져서 눈꽃랜드에 들어갈 수 없어요! 퀴즈 장소를 하나 통과하면(또는 은행 빚을 갚으면) 다시 들어갈 수 있어요.';
 function parkHead(sub,back){ return `<div class="panel-head"><div class="host monkey">${emo('🐵')}</div><h2>🎡 눈꽃랜드<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="pkCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openPark()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
-function parkCoins(n,el){ addCoins(n); const c=$('pkCoin'); if(c) c.textContent=S.coins; if(el){ const [x,y]=elCenter(el); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${n} 🌰`,'#fff6a8'); } sfx('coin'); }
+function parkCoins(n,el){ addCoins(n); econAdd('game',n); const c=$('pkCoin'); if(c) c.textContent=S.coins; if(el){ const [x,y]=elCenter(el); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${n} 🌰`,'#fff6a8'); } sfx('coin'); }
 function openPark(){
   if(!parkOpen()){ sfx('locked'); closeModal(); toast(PARK_BAN_MSG); return; }   // 신용도 하락 → 출입 금지
   if(parkCleanup){ parkCleanup(); parkCleanup=null; }
@@ -3454,9 +3563,11 @@ function openHelp(){
     <ul><li><b>방향키(←↑↓→)</b>로 캐릭터를 움직이고, 건물 앞에서 <b>스페이스/엔터</b>를 누르면 들어가요. 마우스로 장소를 눌러도 돼요.</li>
     <li>주민의 이야기를 듣고 퀴즈를 풀어요.</li>
     <li>문제를 <b>${Math.round(S.passRate*100)}% 이상</b> 맞히면 통과! 다음 장소의 자물쇠🔒가 풀려요.</li>
-    <li>정답마다 🌰10, 첫 통과 보너스 🌰50, 만점 보너스 🌰30을 받아요. 다시 풀어도 도토리를 모을 수 있어요.</li>
+    <li>🌰 <b>퀴즈가 도토리를 가장 많이 버는 방법!</b> 정답마다 🌰${COIN_PER_Q} (🔥${COMBO_AT}연속 콤보부터 🌰${COIN_PER_Q*2}), 첫 통과 보너스 🌰${FIRST_CLEAR_BONUS}, 만점 보너스 🌰${PERFECT_BONUS}을 받아요.</li>
+    <li>📚 <b>복습하면 더 많이!</b> 이미 통과한 장소를 다시 풀면 정답 도토리가 <b>${REVIEW_MULT}배</b>(🌰${COIN_PER_Q*REVIEW_MULT}, 콤보 중 🌰${COIN_PER_Q*REVIEW_MULT*2})이고, 다시 통과하면 복습 보너스 🌰${REVIEW_BONUS}을 받아요.</li>
+    <li>🚨 <b>경제 위기</b>: 가끔 IMF 외환 위기 같은 경제 위기가 찾아와 물건 값이 오르고 예금 이자가 올라요. 🥇 금 모으기로 함께 이겨 내요! 퀴즈 없이 <b>놀이로만</b> 도토리를 벌면 경제에 거품이 껴서 위기가 <b>더 자주</b> 와요.</li>
     <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🧩 동해 풍경 퍼즐, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
-    <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 10개씩 받아요.</li>
+    <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 ${COIN_PER_Q}개씩 받고, 🔥 콤보 중에는 2배예요.</li>
     <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
     <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>금융 퀴즈</b>도 은행 안에서 풀어요(미래 트리 광장을 통과하면 열려요).</li>
     <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가, 눈꽃 은행 금융 퀴즈를 통과하면 열려요):📰 시장 소식을 읽고 <b>수요와 공급</b>에 따라 가격이 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 내가 가진 진짜 도토리로 거래해서, 번 만큼 늘고 잃은 만큼 줄어요.</li>
@@ -3605,6 +3716,10 @@ function openTeacher(msg){
       <button class="btn gold" data-c="100">+100 🌰</button><button class="btn gold" data-c="500">+500 🌰</button>
       <button class="btn blue" id="tItems">🎁 모든 아이템 받기</button>
     </div>
+    <h3>🚨 경제 위기 (IMF 외환 위기 체험)</h3>
+    <div class="rowbtns" style="justify-content:flex-start;margin-top:4px">
+      <button class="btn red" id="tCrisis">${crisisOn()?'🌤️ 경제 위기 끝내기':'🚨 지금 경제 위기 일으키기'}</button>
+    </div>
     </div><div>
     <h3>🏆 반 랭킹</h3>
     <div class="rowbtns" style="justify-content:flex-start;margin-top:4px">
@@ -3626,6 +3741,7 @@ function openTeacher(msg){
   $('tOpen').onclick=()=>tAct(()=>{ S.allOpen=!S.allOpen; }, S.allOpen?'단계를 다시 순서대로 열리게 했어요.':'모든 단계를 열었어요.');
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>tAct(()=>{ S.passRate=+b.dataset.r; }, `통과 기준을 ${Math.round(+b.dataset.r*100)}%로 바꿨어요.`));
   document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>tAct(()=>{ S.coins+=+b.dataset.c; }, `도토리 ${b.dataset.c}개를 줬어요.`));
+  $('tCrisis').onclick=()=>{ if(crisisOn()) endCrisis(false); else { S.crisis={until:Date.now()+CRISIS.mins*60000, gold:0, goal:Math.max(1000,Math.round(S.coins*.3/100)*100)}; save(); crisisUI(); sfx('bankrupt'); toast('🚨 경제 위기를 일으켰어요! 마을로 돌아가면 위쪽 🚨 버튼으로 소식을 볼 수 있어요.'); } openTeacher&&openTeacher(); };
   $('tItems').onclick=()=>tAct(()=>{ ITEMS.forEach(it=>{ if(!S.owned.includes(it.id)) S.owned.push(it.id); S.qty[it.id]=maxOf(it); }); }, '모든 아이템을 최대 개수로 넣었어요. (상점의 내 아이템 탭에서 착용)');
   $('tAns').onclick=showAnswers;
   $('tRank').onclick=()=>openRanking(true);
@@ -3755,6 +3871,7 @@ $('btnRankStart').onclick=()=>{ initAudio(); const sv=load(); if(sv) S=sv; openR
 $('btnRank').onclick=()=>openRanking(false);
 $('btnShop').onclick=openShop;
 $('debtPill').onclick=()=>{ sfx('click'); openBank(); };
+$('crisisPill').onclick=()=>{ sfx('click'); openCrisis(); };
 // 🏡 처음 화면으로 (진행 상황은 저장되고, '이어하기'로 계속할 수 있어요 · 전체화면은 그대로 유지)
 function goHome(){
   sfx('click'); QZ=null; closeModal(); keys.clear(); save(); stopMusic();
