@@ -47,7 +47,7 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 @keyframes twinkle{from{opacity:.2}to{opacity:1}}
 #moon{position:absolute;right:7%;top:9%;width:clamp(40px,6vw,82px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe8,#ffe9a8);box-shadow:0 0 40px 12px rgba(255,240,190,.45)}
 /* 오로라: 캔버스에 커튼 모양 빛줄기를 그려서 일렁이게 함 */
-#aurora{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;transition:opacity 2.5s;pointer-events:none;filter:blur(2px);mix-blend-mode:screen}
+#aurora{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;transition:opacity 2.5s;pointer-events:none;mix-blend-mode:screen}   /* 반 해상도로 그려서 자연스럽게 흐려져요 (blur 필터 불필요) */
 #aurora.on{opacity:1}
 #mountains{position:absolute;left:0;bottom:-2px;width:100%;height:45%}
 #ground{position:absolute;left:-10%;width:120%;top:42%;bottom:0;background:radial-gradient(ellipse at 50% 0%,#ffffff 0%,#f1f6fe 45%,#dce7f7 100%);border-radius:50% 50% 0 0/70px 70px 0 0;box-shadow:inset 0 10px 30px rgba(255,255,255,.9)}
@@ -140,11 +140,14 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 .av.solo .scarf2{top:.49em;width:.46em;height:.09em;margin-left:-.23em}
 .av.solo .scarf2::after{width:.09em;height:.18em;top:.06em}
 .av.solo .nose{top:.43em;width:.1em;height:.1em}
-.nose{position:absolute;left:50%;top:.7em;width:.13em;height:.13em;background:#ff2b2b;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px 4px rgba(255,60,60,.75);animation:nosePulse .9s infinite alternate;z-index:3}
-@keyframes nosePulse{from{box-shadow:0 0 4px 2px rgba(255,60,60,.5)}to{box-shadow:0 0 14px 7px rgba(255,60,60,.9)}}
+.nose{position:absolute;left:50%;top:.7em;width:.13em;height:.13em;background:#ff2b2b;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px 5px rgba(255,60,60,.8);animation:nosePulse .9s infinite alternate;z-index:3}
+@keyframes nosePulse{from{opacity:.75;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}   /* 그림자 대신 크기·투명도만 바꿔서 가볍게 */
 
 /* decor */
-.decor{position:absolute;transform:translate(-50%,-100%);font-size:clamp(34px,5vw,66px);cursor:grab;touch-action:none;line-height:1;filter:drop-shadow(0 5px 3px rgba(60,80,130,.3))}
+.decor{position:absolute;transform:translate(-50%,-100%);font-size:clamp(34px,5vw,66px);cursor:grab;touch-action:none;line-height:1}
+/* ⚡ 렉 줄이기: 움직이는 장식에 drop-shadow 필터를 걸면 매 프레임 그림자를 새로 계산해서 무거워요 → 바닥 타원 그림자로 바꿈 */
+.decor::after{content:'';position:absolute;left:50%;bottom:-.05em;width:.7em;height:.12em;margin-left:-.35em;border-radius:50%;background:rgba(60,80,130,.2);z-index:-1;pointer-events:none}
+.decor.ontable::after,.decor.solar::after{display:none}
 .decor:active{cursor:grabbing}
 .decor .in{position:relative;display:inline-block}
 .decor.snowman .in{animation:wobble 2.5s ease-in-out infinite;transform-origin:bottom center}
@@ -202,7 +205,7 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 @keyframes hop{0%,80%,100%{transform:translateY(0)}88%{transform:translateY(-10px)}}
 /* 마을 펫 (고양이·강아지 친구들, 여러 마리가 함께 산책) */
 .pet{position:absolute;transform:translate(-50%,-100%);font-size:clamp(30px,3.8vw,48px);cursor:pointer;line-height:1}
-.pet .in{display:inline-block;transform-origin:50% 100%;filter:drop-shadow(0 3px 2px rgba(60,80,130,.3))}
+.pet .in{display:inline-block;transform-origin:50% 100%;will-change:transform}
 .pet .shadow{position:absolute;left:50%;bottom:-.04em;width:.7em;height:.12em;margin-left:-.35em;border-radius:50%;background:rgba(60,80,130,.18);z-index:-1}
 .pet .zz{position:absolute;left:62%;top:-25%;font-size:.42em;display:none;animation:zz 1.8s infinite}
 .pet.sleep .zz{display:block}
@@ -262,7 +265,7 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 @keyframes bump{50%{transform:scale(1.2)}}
 
 /* ---------- MODALS ---------- */
-.overlay{position:fixed;inset:0;background:rgba(30,35,70,.45);display:flex;align-items:center;justify-content:center;z-index:850;padding:14px;backdrop-filter:blur(2px)}
+.overlay{position:fixed;inset:0;background:rgba(30,35,70,.45);display:flex;align-items:center;justify-content:center;z-index:850;padding:14px;background:rgba(30,35,70,.6)}   /* 뒤 배경 흐림(blur) 효과는 매 프레임 다시 계산돼 무거워서 뺐어요 */
 .panel{background:var(--cream);border-radius:28px;box-shadow:0 10px 0 #d8c3a1,0 20px 50px rgba(0,0,0,.3);width:min(860px,100%);max-height:calc(var(--app-h,100vh) - 28px);overflow:auto;position:relative;border:4px solid #fff}
 .panel-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:repeating-linear-gradient(45deg,#e8f4ec 0 14px,#dcefe3 14px 28px);border-radius:24px 24px 0 0}
 .panel-head h2{font-family:'Jua';font-size:clamp(18px,2.4vw,26px);font-weight:normal;flex:1}
@@ -624,7 +627,7 @@ html.lite #world, html.lite #world *{animation-play-state:paused!important;trans
 .item{padding:7px 7px 8px;gap:2px;border-radius:16px}
 .item .em{font-size:30px}
 .item .nm{font-size:14px;line-height:1.2}
-.item .ds{font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:none;height:2.7em}
+.item .ds{font-size:12px;line-height:1.4;display:block;overflow:visible;flex:1;height:auto;-webkit-line-clamp:unset}   /* 설명이 잘리지 않고 끝까지 다 보이게 */
 .item .pr{font-size:13px}
 .item .cnt{font-size:11px}
 .item .btn{padding:5px 6px;font-size:12px}
@@ -940,7 +943,7 @@ const ITEMS = [
   {id:'dog_poodle', em:'', name:'푸들', price:100, kind:'pet', desc:'곱슬곱슬 푸들이 총총총 산책해요.'},
   {id:'dog_maltese',em:'', name:'말티즈', price:100, kind:'pet', desc:'분홍 리본을 단 하얀 말티즈가 따라다녀요.'},
   {id:'tree',     em:'🎄', name:'크리스마스 트리', price:40, kind:'decor', desc:'한 그루씩 살 수 있어요. 알록달록 전구가 깜빡이고 별이 빛나요.'},
-  {id:'solar',    em:'☀️', name:'태양광 발전기', price:150, kind:'decor', desc:'마을에 설치하면 햇빛으로 전기를 만들어요. 5분마다 전기가 다 만들어지면 ⚡ 전기 팔기 버튼을 눌러 1대에 도토리 🌰5를 벌어요! (3대까지)'},
+  {id:'solar',    em:'☀️', name:'태양광 발전기', price:150, kind:'decor', desc:'마을에 설치하면 햇빛으로 전기를 만들어요. 5분마다 전기가 다 만들어지면 ⚡ 전기 팔기 버튼을 눌러 1대에 도토리 🌰5000을 벌어요! (3대까지)'},
   {id:'shooting', em:'🌠', name:'별똥별', price:120, kind:'sky', desc:'밤하늘에 별똥별이 슝~ 떨어져요.'},
   {id:'crown',    em:'👑', name:'눈꽃 왕관', price:150, kind:'wear', slot:'hat', desc:'머리 주위로 눈꽃이 빙글빙글 돌아요.'},
   {id:'aurora',   em:'🌌', name:'오로라 하늘', price:200, kind:'sky', desc:'하늘에 신비로운 오로라가 일렁여요.'},
@@ -1380,7 +1383,8 @@ function sfx(name){
    ========================================================= */
 const cv=document.getElementById('fx'), cx=cv.getContext('2d');
 let W=0,H=0,DPR=1, parts=[], flakes=[];
-function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; cx.setTransform(DPR,0,0,DPR,0,0); }
+// 효과 캔버스는 1.5배 해상도까지만 (태블릿 고해상도에서 너무 무거워짐)
+function resize(){ DPR=Math.min(1.5,window.devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; cx.setTransform(DPR,0,0,DPR,0,0); }
 addEventListener('resize',resize); resize();
 function rnd(a,b){return a+Math.random()*(b-a)}
 function burst(x,y,opts){
@@ -1439,11 +1443,12 @@ function drawAurora(now){
   const cv=AUR.cv, on=has('aurora'); cv.classList.toggle('on',on);
   if(!on || now-AUR.last<33) return; AUR.last=now;
   if(!AUR.strips) AUR.strips=AUR_BANDS.map(auroraStrip);
-  const w=cv.clientWidth, h=cv.clientHeight; if(!w||!h) return;
+  // 반 해상도로 그리고 CSS로 늘려요 → 그리는 양이 1/4로 줄고, 저절로 부드럽게 번져 보여요
+  const w=Math.ceil(cv.clientWidth/2), h=Math.ceil(cv.clientHeight/2); if(!w||!h) return;
   if(cv.width!==w||cv.height!==h){ cv.width=w; cv.height=h; }
   const c=AUR.ctx, t=now/1000; c.clearRect(0,0,w,h); c.globalCompositeOperation='lighter';
   AUR_BANDS.forEach((b,bi)=>{
-    const step=2.5;
+    const step=2;
     for(let x=0;x<w;x+=step){
       const u=x/w, edge=Math.pow(Math.sin(u*Math.PI),.7);
       const y=h*(b.base + b.amp*Math.sin(u*b.f1*6.283+t*b.sp*6.283*3) + b.amp*.45*Math.sin(u*b.f2*6.283-t*b.sp*6.283*5+bi));
@@ -1457,6 +1462,7 @@ function drawAurora(now){
   c.globalAlpha=1; c.globalCompositeOperation='source-over';
 }
 
+const PARTS_MAX=450;
 let last=performance.now(), LITE=false, liteClean=false;   // LITE: 핀볼 중에는 오로라·눈·장식 효과를 쉬어요
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
@@ -1470,7 +1476,11 @@ function frame(now){
   while(flakes.length<target) flakes.push({x:rnd(0,W),y:rnd(-H,0),r:rnd(1.2,has('snowfall')?4.2:2.8),s:rnd(25,70),w:rnd(0,6)});
   if(flakes.length>target) flakes.length=target;
   cx.fillStyle='rgba(255,255,255,.85)';
-  for(const f of flakes){ f.y+=f.s*dt; f.w+=dt; f.x+=Math.sin(f.w)*12*dt; if(f.y>H+5){f.y=-5;f.x=rnd(0,W);} cx.beginPath(); cx.arc(f.x,f.y,f.r,0,7); cx.fill(); }
+  cx.beginPath();   // 눈송이를 한 번에 모아서 그리기 (하나씩 그리면 170번 그려야 해서 무거움)
+  for(const f of flakes){ f.y+=f.s*dt; f.w+=dt; f.x+=Math.sin(f.w)*12*dt; if(f.y>H+5){f.y=-5;f.x=rnd(0,W);} cx.moveTo(f.x+f.r,f.y); cx.arc(f.x,f.y,f.r,0,7); }
+  cx.fill();
+  // 효과 조각이 너무 많이 쌓이면 오래된 것부터 정리 (아이템을 모두 장착하면 수백 개가 한꺼번에 생겨요)
+  if(parts.length>PARTS_MAX) parts.splice(0,parts.length-PARTS_MAX);
   // emitters
   if(!LITE){
     // 눈 결정 바람: 왼쪽에서 바람을 타고 빙글빙글 날아오는 육각형 눈 결정
@@ -1882,7 +1892,7 @@ function enterStage(i){
   sfx('click'); openStage(i);
 }
 function checkNear(){
-  const r=$('world').getBoundingClientRect(); let best=null, bd=1e9;
+  const r=WR||$('world').getBoundingClientRect(); let best=null, bd=1e9;
   for(const t of targets()){ const d=Math.hypot((t.x-avX)*r.width/100,(t.y-avY)*r.height/100); if(d<bd){bd=d;best=t;} }
   nearT = bd < Math.max(95, r.width*.11) ? best : null;
   $('avatar').classList.toggle('near', !!nearT && gameOn());
@@ -1904,19 +1914,26 @@ function avatarPrint(ang){
   footSide=-footSide;
   parts.push({kind:'foot',x:x+Math.cos(ang+Math.PI/2)*footSide*size*.9,y:y+Math.sin(ang+Math.PI/2)*footSide*size*.9,vx:0,vy:0,g:0,life:3,max:3,size,rot:ang,vr:0});
 }
+/* ⚡ 렉 줄이기: 화면 위치를 읽는 일(getBoundingClientRect)과 위치를 바꾸는 일을 섞으면
+   브라우저가 매번 화면 배치를 처음부터 다시 계산해요 (펫 7마리 + 스케이트 아이들이면 한 프레임에 수십 번!).
+   그래서 프레임 맨 앞에서 한꺼번에 '읽고', 그 다음에 '바꾸도록' 순서를 정리했어요. */
+var WR=null;                 // 이번 프레임의 마을(world) 위치·크기
+const postRead=[];           // 다음 프레임 맨 앞에서 실행할 '위치 읽기' 작업 (발자국·반짝이 위치 등)
 function keyMove(now){
   const dt=Math.min(.05,(now-kmLast)/1000); kmLast=now;
+  WR=$('world').getBoundingClientRect();
+  if(postRead.length){ const q=postRead.splice(0); for(const f of q){ try{ f(); }catch(e){} } }
   const av=$('avatar');
   if(gameOn() && !walking && keys.size){
     let dx=0,dy=0; if(keys.has('L'))dx--; if(keys.has('R'))dx++; if(keys.has('U'))dy--; if(keys.has('D'))dy++;
     if(dx||dy){
-      const r=$('world').getBoundingClientRect(), len=Math.hypot(dx,dy), sp=Math.max(200,r.width*.22);
+      const r=WR, len=Math.hypot(dx,dy), sp=Math.max(200,r.width*.22);
       avX=Math.max(3,Math.min(97,avX+dx/len*sp*dt/r.width*100));
       avY=Math.max(52,Math.min(93,avY+dy/len*sp*dt/r.height*100));
       av.style.transition='none'; place(av,avX,avY); av.classList.add('walking'); kmMoving=true;
       if(dx) setDir(dx<0?-1:1);
-      if((kmStep+=dt)>.17){ kmStep=0; avatarPrint(Math.atan2(dy*r.height,dx*r.width)); }
-      if(has('scarf') && (kmTrail+=dt)>.08){ kmTrail=0; const [px,py]=elCenter(av,.95); burst(px,py,{n:3,speed:30,life:.8,g:-20,size:2.5,colors:['#ff8fa3','#fff6a8','#ffffff']}); }
+      if((kmStep+=dt)>.17){ kmStep=0; const ang=Math.atan2(dy*r.height,dx*r.width); postRead.push(()=>avatarPrint(ang)); }
+      if(has('scarf') && (kmTrail+=dt)>.08){ kmTrail=0; postRead.push(()=>{ const [px,py]=elCenter(av,.95); burst(px,py,{n:3,speed:30,life:.8,g:-20,size:2.5,colors:['#ff8fa3','#fff6a8','#ffffff']}); }); }
       checkNear();
     }
   } else if(kmMoving){ kmMoving=false; if(!walking) av.classList.remove('walking'); checkNear(); }
@@ -2034,8 +2051,8 @@ function makeDraggable(el,key,id){
 }
 
 /* ---------- ☀️ 태양광 발전기: 마을에 설치하면 5분마다 전기를 팔아 도토리를 벌어요 ----------
-   게임을 켜 둔 동안에만 충전돼요. 발전기 1대마다 🌰5 (최대 3대 → 5분에 🌰15). */
-const SOLAR={secs:300, earn:5};
+   게임을 켜 둔 동안에만 충전돼요. 발전기 1대마다 🌰5000 (최대 3대 → 5분에 🌰15000). */
+const SOLAR={secs:300, earn:5000};   // 발전기 1대마다 🌰5000
 const solarPct=k=>Math.min(100,Math.floor((solarP()[k]||0)/SOLAR.secs*100));
 const SOLAR_SVG=`<svg class="solarsvg" viewBox="0 0 100 86" aria-hidden="true">
   <ellipse cx="50" cy="82" rx="34" ry="3.5" fill="rgba(60,80,130,.22)"/>
@@ -2141,12 +2158,12 @@ function rinkTick(dt){
       const bump=Math.abs(Math.sin(r.ph*9))*-2;
       tf=`scaleX(${flip}) translateY(${bump.toFixed(1)}px) rotate(${(Math.sin(r.ph*5)*2).toFixed(1)}deg)`;
     }
-    const kb=r.el.querySelector('.kb'); kb.style.transform=tf;
+    const kb=r.kb||(r.kb=r.el.querySelector('.kb')); kb.style.transform=tf;
     place(r.el,r.x,r.y);
     r.trail+=dt;
-    if(r.trail>(r.type==='sled'?.05:.09)){ r.trail=0; const b=r.el.getBoundingClientRect(); const px=b.left+b.width/2-r.dir*b.width*.3, py=b.bottom-2;
+    if(r.trail>(r.type==='sled'?.05:.09)){ r.trail=0; postRead.push(()=>{ if(!r.el.isConnected) return; const b=r.el.getBoundingClientRect(); const px=b.left+b.width/2-r.dir*b.width*.3, py=b.bottom-2;
       if(r.type==='sled') burst(px,py,{n:2,speed:50,g:80,life:.5,colors:['#ffffff','#e6f4ff'],size:2.2});
-      else parts.push({kind:'spark',x:px,y:py,vx:-r.dir*10,vy:0,g:0,life:.8,max:.8,size:1.3,color:'#ffffff',rot:0,vr:0}); }
+      else parts.push({kind:'spark',x:px,y:py,vx:-r.dir*10,vy:0,g:0,life:.8,max:.8,size:1.3,color:'#ffffff',rot:0,vr:0}); }); }
   }
 }
 
@@ -2187,24 +2204,25 @@ function petPick(P){
 }
 function catTick(dt){ for(const id in PETS) petTick(PETS[id],dt); }
 function petTick(CAT,dt){
-  const el=CAT.el, r=$('world').getBoundingClientRect(), inn=el.querySelector('.in'), catSay=(t,s)=>petSay(CAT,t,s), catPick=()=>petPick(CAT);
-  el.classList.toggle('sleep',CAT.state==='sleep');
+  const el=CAT.el, r=WR||$('world').getBoundingClientRect(), inn=CAT.inn||(CAT.inn=el.querySelector('.in')), catSay=(t,s)=>petSay(CAT,t,s), catPick=()=>petPick(CAT);
+  const sl=CAT.state==='sleep'; if(CAT._sl!==sl){ CAT._sl=sl; el.classList.toggle('sleep',sl); }
   let jy=0; if(CAT.jump>0){ CAT.jump-=dt; jy=-Math.sin(Math.max(0,CAT.jump)/.5*Math.PI)*18; }
   const flip=`scaleX(${-CAT.dir})`; // 그림 문자 고양이는 왼쪽을 보고 있어서, 오른쪽으로 갈 땐 뒤집음
   if(CAT.state==='walk'){
     const dxp=(CAT.tx-CAT.x)*r.width/100, dyp=(CAT.ty-CAT.y)*r.height/100, d=Math.hypot(dxp,dyp), step=CAT.speed*dt;
     if(d<=step){
       CAT.x=CAT.tx; CAT.y=CAT.ty;
-      if(CAT.follow){ CAT.dir=avX>CAT.x?1:-1; const [px,py]=elCenter(el,.3); burst(px,py,{n:6,chars:['💕','💗'],size:16,speed:70,g:-30,life:1.2}); catSay(PET_TALK[CAT.kind].love); }
+      if(CAT.follow){ CAT.dir=avX>CAT.x?1:-1; postRead.push(()=>{ const [px,py]=elCenter(el,.3); burst(px,py,{n:6,chars:['💕','💗'],size:16,speed:70,g:-30,life:1.2}); }); catSay(PET_TALK[CAT.kind].love); }
       CAT.state='sit'; CAT.t=rnd(1.5,3.5); CAT.follow=false; CAT.zoom=false;
     } else {
       CAT.x+=dxp/d*step/r.width*100; CAT.y+=dyp/d*step/r.height*100;
       if(Math.abs(dxp)>2) CAT.dir=dxp>0?1:-1;
       CAT.ph+=dt*(CAT.zoom?24:13);
       CAT.print+=dt;
-      if(CAT.print>(CAT.zoom?.12:.32) && gameOn()){ CAT.print=0; const [px,py]=elCenter(el,.98);
-        parts.push({kind:'emoji',x:px+rnd(-3,3),y:py+2,vx:0,vy:0,g:0,life:2.6,max:2.6,size:10,ch:'🐾',rot:CAT.dir>0?1.57:-1.57,vr:0});
-        if(CAT.zoom) burst(px,py,{n:3,speed:40,g:60,life:.5,colors:['#ffffff','#e6f4ff'],size:2.5}); }
+      if(CAT.print>(CAT.zoom?.12:.32) && gameOn()){ CAT.print=0; const zoom=CAT.zoom, dir=CAT.dir;
+        postRead.push(()=>{ if(!el.isConnected) return; const [px,py]=elCenter(el,.98);
+          parts.push({kind:'emoji',x:px+rnd(-3,3),y:py+2,vx:0,vy:0,g:0,life:2.6,max:2.6,size:10,ch:'🐾',rot:dir>0?1.57:-1.57,vr:0});
+          if(zoom) burst(px,py,{n:3,speed:40,g:60,life:.5,colors:['#ffffff','#e6f4ff'],size:2.5}); }); }
     }
     const bob=Math.abs(Math.sin(CAT.ph))*(CAT.zoom?7:4), tilt=Math.sin(CAT.ph)*(CAT.zoom?9:5);
     inn.style.transform=`${flip} translateY(${-bob+jy}px) rotate(${tilt}deg)`;
@@ -2809,7 +2827,13 @@ const MKT_NEWS={
 };
 const MKT_UP=t=>t==='D+'||t==='S-';
 const MKT_WHY={'D+':'사려는 사람(<b>수요</b>)이 늘어서 가격이 <b>올랐어요</b>','D-':'사려는 사람(<b>수요</b>)이 줄어서 가격이 <b>내렸어요</b>','S+':'파는 물건(<b>공급</b>)이 많아져서 가격이 <b>내렸어요</b>','S-':'파는 물건(<b>공급</b>)이 줄어서 가격이 <b>올랐어요</b>'};
-const MKT_DAYS=8, MKT_CASH=100, MKT_MAXR=30;
+const MKT_DAYS=8, MKT_PRED=2;   // 내 진짜 도토리로 거래해요 · 📈📉 예상 성공마다 보너스 🌰2
+// 게임 도중에 창을 닫거나 새로고침하면, 가진 물건을 마지막 가격으로 자동으로 팔아 도토리로 돌려줘요
+function mktSettle(){
+  const m=S.mktHold; if(!m) return 0; let got=0;
+  for(const k in m) got+=(m[k].n||0)*(m[k].p||0);
+  delete S.mktHold; if(got) S.coins+=got; save(); renderHud(); return got;
+}
 function exchHead(sub,back){ return `<div class="panel-head"><div class="host">🦝</div><h2>📈 눈꽃 증권거래소<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="exCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openExchange()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
 // 증권거래소는 눈꽃 은행 금융 퀴즈를 통과해야 열려요 (선생님의 '모두 열기'면 바로 열림)
 function exchOpen(){ return !!S.allOpen || !!(S.stages[BANK_STAGE]&&S.stages[BANK_STAGE].cleared); }
@@ -2817,6 +2841,7 @@ function exchLockedMsg(){ sfx('locked'); toast('🔒 「눈꽃 은행」의 <b>�
 function openExchange(){
   if(!exchOpen()){ closeModal(); exchLockedMsg(); return; }
   if(parkCleanup){ parkCleanup(); parkCleanup=null; }
+  const back=mktSettle(); if(back) toast(`📦 남아 있던 물건을 팔아 도토리 🌰 ${back}개를 돌려받았어요!`);
   if(!S.exchVisited){ S.exchVisited=true; save(); renderBuildings(); }
   openModal(exchHead('시장 가격 게임')+`<div class="panel-body">
     <div class="hostname">너굴 중개인</div>
@@ -2826,25 +2851,31 @@ function openExchange(){
       <div class="up">📈 <b>가격이 올라요</b><br>사려는 사람(수요)이 늘 때<br>파는 물건(공급)이 줄 때</div>
       <div class="down">📉 <b>가격이 내려요</b><br>사려는 사람(수요)이 줄 때<br>파는 물건(공급)이 늘 때</div>
     </div>
-    <div class="rankinfo" style="margin-top:10px">🎮 연습용 도토리 🌰 ${MKT_CASH}으로 ${MKT_DAYS}일 동안 거래해요. 마지막 날 가진 물건은 모두 팔아요.<br>🌰 번 만큼(4개마다 1개) + 📈📉 예상을 맞힐 때마다 2개를 진짜 도토리로 받아요 (최대 🌰${MKT_MAXR}). 가격이 늘 예상대로 움직이지는 않아요. <b>투자에는 위험</b>이 따른다는 것도 기억해!</div>
-    <div class="rowbtns"><button class="btn green" id="mkStart">📈 시장 가격 게임 시작!</button></div>
+    <div class="rankinfo" style="margin-top:10px">🎮 <b>내가 가진 진짜 도토리</b>(지금 🌰 ${S.coins})로 ${MKT_DAYS}일 동안 거래해요. 물건을 사면 도토리가 줄고, 팔면 늘어나요. 마지막 날 가진 물건은 모두 팔아요.<br>💰 번 만큼 내 도토리가 늘고, 잃으면 줄어요! 📈📉 예상을 맞힐 때마다 보너스 🌰${MKT_PRED}개도 받아요. 가격이 늘 예상대로 움직이지는 않아요. <b>투자에는 위험</b>이 따른다는 것도 기억해!</div>
+    <div class="rowbtns"><button class="btn green" id="mkStart" ${S.coins>=2?'':'disabled'}>${S.coins>=2?'📈 시장 가격 게임 시작!':'도토리가 있어야 참여할 수 있어요'}</button></div>
   </div>`,'wide');
   $('mkStart').onclick=()=>{ sfx('click'); startMarket(); };
 }
 function startMarket(){
-  let day=1, cash=MKT_CASH, preds=0, predN=0, done=false;
+  mktSettle();   // 혹시 남은 거래가 있으면 먼저 정리
+  const START=S.coins;   // 시작할 때 내 도토리 (손익 계산용)
+  let day=1, preds=0, predN=0, done=false;
   const prices={}, prev={}, hold={}, pred={}; let news=[], results=[];
   MKT_GOODS.forEach(g=>{ prices[g.k]=Math.max(3,Math.round(g.base*rnd(.85,1.15))); prev[g.k]=prices[g.k]; hold[g.k]=0; });
   const pickNews=()=>shuffle(MKT_GOODS.map(g=>g.k)).slice(0,Math.random()<.45?1:2).map(k=>({k,t:pickOne(['D+','D-','S+','S-'])}));
   news=pickNews();
-  const goodsVal=()=>MKT_GOODS.reduce((a,g)=>a+hold[g.k]*prices[g.k],0), total=()=>cash+goodsVal();
+  const goodsVal=()=>MKT_GOODS.reduce((a,g)=>a+hold[g.k]*prices[g.k],0), total=()=>S.coins+goodsVal();
   const gOf=k=>MKT_GOODS.find(g=>g.k===k);
+  // 가진 물건을 저장해 둬요 (도중에 나가도 mktSettle로 도토리를 돌려받을 수 있게)
+  function persist(){ const h={}; MKT_GOODS.forEach(g=>{ if(hold[g.k]) h[g.k]={n:hold[g.k],p:prices[g.k]}; });
+    if(Object.keys(h).length) S.mktHold=h; else delete S.mktHold; save(); renderHud(); }
+  parkCleanup=()=>{ if(!done){ done=true; mktSettle(); } };   // 창을 닫거나 ↩ 를 누르면 자동 정산
   function render(keep){
-    const tot=total(), pf=tot-MKT_CASH, last=day>=MKT_DAYS, sc=$('modalPanel').scrollTop;
+    const cash=S.coins, tot=total(), pf=tot-START, last=day>=MKT_DAYS, sc=$('modalPanel').scrollTop;
     setTimeout(()=>{ if(keep) $('modalPanel').scrollTop=sc; },0);   // 사고팔 때 화면이 맨 위로 튀지 않게
     openModal(exchHead(`시장 가격 게임 · ${day}/${MKT_DAYS}일째`,true)+`<div class="panel-body">
-      <div class="mkstat"><span>📅 <b>${day}</b>/${MKT_DAYS}일</span><span>💰 현금 <b>🌰 ${cash}</b></span><span>📦 물건 값 <b>🌰 ${goodsVal()}</b></span><span>📊 총재산 <b>🌰 ${tot}</b> <em class="${pf>0?'up':pf<0?'down':''}">(${pf>0?'+':''}${pf})</em></span></div>
-      ${results.length?`<div class="mkres"><b>📊 어제 소식은 이렇게 됐어요!</b>${results.map(r=>`<div>${gOf(r.k).em} <b>${gOf(r.k).nm}</b> 🌰 ${r.from} → <b class="${r.to>r.from?'up':r.to<r.from?'down':''}">🌰 ${r.to}</b> · ${r.weak?'다른 일도 함께 일어나서 생각보다 조금만 움직였어요 (가격은 늘 예상대로 움직이지 않아요!)':MKT_WHY[r.t]}${r.p?(r.ok?' <span class="ok">✔ 예상 성공 +2</span>':' <span class="no">✘ 예상 실패</span>'):''}</div>`).join('')}</div>`:''}
+      <div class="mkstat"><span>📅 <b>${day}</b>/${MKT_DAYS}일</span><span>💰 내 도토리 <b>🌰 ${cash}</b></span><span>📦 물건 값 <b>🌰 ${goodsVal()}</b></span><span>📊 총재산 <b>🌰 ${tot}</b> <em class="${pf>0?'up':pf<0?'down':''}">(${pf>0?'+':''}${pf})</em></span></div>
+      ${results.length?`<div class="mkres"><b>📊 어제 소식은 이렇게 됐어요!</b>${results.map(r=>`<div>${gOf(r.k).em} <b>${gOf(r.k).nm}</b> 🌰 ${r.from} → <b class="${r.to>r.from?'up':r.to<r.from?'down':''}">🌰 ${r.to}</b> · ${r.weak?'다른 일도 함께 일어나서 생각보다 조금만 움직였어요 (가격은 늘 예상대로 움직이지 않아요!)':MKT_WHY[r.t]}${r.p?(r.ok?` <span class="ok">✔ 예상 성공 +${MKT_PRED}</span>`:' <span class="no">✘ 예상 실패</span>'):''}</div>`).join('')}</div>`:''}
       <div class="mktable">${MKT_GOODS.map(g=>{ const ch=prices[g.k]-prev[g.k];
         return `<div class="mkrow"><span class="mkem">${g.em}</span><span class="mknm">${g.nm}</span>
           <span class="mkpr">🌰 ${prices[g.k]} <small class="${ch>0?'up':ch<0?'down':''}">${ch>0?'▲'+ch:ch<0?'▼'+(-ch):'-'}</small></span>
@@ -2855,8 +2886,8 @@ function startMarket(){
       <div class="rowbtns"><button class="btn ${last?'gold':'green'}" id="mkNext">${last?'🏁 장 마감하기':'🌙 다음 날로 ▶'}</button></div>
       <div class="mktip">💡 수요↑ · 공급↓ → 가격 📈 &nbsp;|&nbsp; 수요↓ · 공급↑ → 가격 📉</div>
       <div id="mkEnd"></div></div>`,'wide');
-    document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{ const k=b.dataset.buy, n=Math.min(+b.dataset.n,Math.floor(cash/prices[k])); if(n<1) return; cash-=n*prices[k]; hold[k]+=n; sfx('coin'); render(true); });
-    document.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{ const k=b.dataset.sell, n=b.dataset.n==='all'?hold[k]:Math.min(1,hold[k]); if(n<1) return; cash+=n*prices[k]; hold[k]-=n; sfx('pop'); render(true); });
+    document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{ if(done) return; const k=b.dataset.buy, n=Math.min(+b.dataset.n,Math.floor(S.coins/prices[k])); if(n<1) return; S.coins-=n*prices[k]; hold[k]+=n; persist(); sfx('coin'); render(true); });
+    document.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{ if(done) return; const k=b.dataset.sell, n=b.dataset.n==='all'?hold[k]:Math.min(1,hold[k]); if(n<1) return; S.coins+=n*prices[k]; hold[k]-=n; persist(); sfx('pop'); render(true); });
     document.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{ pred[b.dataset.pk]=b.dataset.pv; sfx('click'); render(true); });
     $('mkNext').onclick=()=>{ if(last) finish(); else nextDay(); };
   }
@@ -2870,21 +2901,23 @@ function startMarket(){
       prices[g.k]=Math.max(2,Math.min(99,Math.round(prices[g.k]*f))); });
     results.forEach(r=>{ r.from=prev[r.k]; r.to=prices[r.k]; });
     for(const k in pred) delete pred[k];
-    day++; news=pickNews(); sfx('bell'); render();
+    day++; news=pickNews(); persist(); sfx('bell'); render();   // 바뀐 가격으로 저장
   }
   function finish(){
-    done=true; MKT_GOODS.forEach(g=>{ cash+=hold[g.k]*prices[g.k]; hold[g.k]=0; });
-    const pf=cash-MKT_CASH, reward=Math.min(MKT_MAXR, Math.max(0,Math.floor(pf/4))+preds*2);
+    done=true; MKT_GOODS.forEach(g=>{ S.coins+=hold[g.k]*prices[g.k]; hold[g.k]=0; }); delete S.mktHold; save();
+    const cash=S.coins, pf=cash-START, reward=preds*MKT_PRED;   // 번 만큼(잃은 만큼)은 이미 내 도토리에 반영돼 있어요
     render(true); $('mkNext').remove();
-    $('mkEnd').innerHTML=`<div class="feedback ${pf>0?'good':'bad'}" style="text-align:center"><div class="big">${pf>0?'🎉 장 마감! 돈을 벌었어요':pf<0?'😢 장 마감! 이번엔 손해를 봤어요':'장 마감! 본전이에요'}</div>
-      연습용 🌰 ${MKT_CASH} → <b>🌰 ${cash}</b> (${pf>=0?'+':''}${pf}) · 예상 성공 ${preds}/${predN}번<br>진짜 도토리 <b>🌰 ${reward}</b>을 받았어요! ${pf<0?'<br>💡 가격이 오를 물건을 미리 사 두고, 내릴 물건은 팔아 두면 돼요. 뉴스 속 <b>수요와 공급</b>을 잘 살펴봐요!':''}
+    $('mkEnd').innerHTML=`<div class="feedback ${pf>0?'good':'bad'}" style="text-align:center"><div class="big">${pf>0?'🎉 장 마감! 도토리를 벌었어요':pf<0?'😢 장 마감! 이번엔 손해를 봤어요':'장 마감! 본전이에요'}</div>
+      내 도토리 🌰 ${START} → <b>🌰 ${cash}</b> (${pf>=0?'+':''}${pf}) · 예상 성공 ${preds}/${predN}번<br>${reward?`예상 보너스 <b>🌰 ${reward}</b>도 받았어요!`:'예상 보너스는 없어요.'} ${pf<0?'<br>💡 가격이 오를 물건을 미리 사 두고, 내릴 물건은 팔아 두면 돼요. 뉴스 속 <b>수요와 공급</b>을 잘 살펴봐요!':''}
       <div class="rowbtns"><button class="btn green" id="mkAgain">🔁 한 번 더</button><button class="btn cream" onclick="closeModal()">🏡 마을로</button></div></div>`;
-    if(reward){ addCoins(reward); const c=$('exCoin'); if(c) c.textContent=S.coins; const [x,y]=elCenter($('mkEnd')); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${reward} 🌰`,'#fff6a8'); sfx('coin'); if(pf>0) confetti(50); } else sfx('wrong');
+    if(reward) addCoins(reward); else renderHud();
+    { const c=$('exCoin'); if(c) c.textContent=S.coins; }
+    if(pf>0||reward){ const [x,y]=elCenter($('mkEnd')); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`${pf+reward>=0?'+':''}${pf+reward} 🌰`,'#fff6a8'); sfx('coin'); if(pf>0) confetti(50); } else sfx('wrong');
     $('mkAgain').onclick=()=>{ sfx('click'); startMarket(); };
     $('mkEnd').scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   render();
-  window.__mk={get day(){return day;}, get cash(){return cash;}, prices, hold, get news(){return news;}, pred};   // (점검용)
+  window.__mk={get day(){return day;}, get cash(){return S.coins;}, prices, hold, get news(){return news;}, pred};   // (점검용)
 }
 function parkOpen(){ return !S.creditDown; }   // 눈꽃랜드은 언제든지 들어갈 수 있음 (단, 신용도가 떨어지면 출입 금지)
 const PARK_BAN_MSG='🎡 신용도가 떨어져서 눈꽃랜드에 들어갈 수 없어요! 퀴즈 장소를 하나 통과하면(또는 은행 빚을 갚으면) 다시 들어갈 수 있어요.';
@@ -2899,11 +2932,11 @@ function openPark(){
     <div class="bubble" style="cursor:default;min-height:0;margin-bottom:16px">🐵 어서 와, 눈꽃랜드이야! 공부하다 쉬고 싶을 때 언제든 놀러 와. 놀면서 배운 내용도 떠올리고 <b>도토리🌰</b>도 모을 수 있어. 어떤 놀이기구를 탈래?</div>
     <div class="parkmenu">
       <div class="gcard" data-g="block"><div class="gi">🧱</div><div class="gn">눈꽃 블록 쌓기</div><div class="gd">떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채우면 줄이 사라져요!</div><div class="gr">한 줄마다 🌰3 (최대 30)</div></div>
-      <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰1000 · 10분에 5번</div></div>
+      <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰10000 · 10분에 5번</div></div>
       <div class="gcard" data-g="cards"><div class="gi">🃏</div><div class="gn">겨울 카드 뒤집기</div><div class="gd">카드를 두 장씩 뒤집어 눈사람, 트리, 썰매 같은 같은 겨울 그림 짝을 찾아요!</div><div class="gr">완성하면 🌰10~20</div></div>
       <div class="gcard" data-g="puzzle"><div class="gi">🧩</div><div class="gn">동해 풍경 퍼즐</div><div class="gd">추암 촛대바위, 무릉계곡 같은 우리 동해시의 아름다운 풍경 사진 퍼즐을 맞춰요!</div><div class="gr">완성하면 🌰10~30</div></div>
       <div class="gcard" data-g="bell"><div class="gi">🔔</div><div class="gn">눈꽃 종치기</div><div class="gd">펼쳐진 카드에 같은 그림이 딱 5개가 되면 친구들보다 먼저 종을 쳐요!</div><div class="gr">종 1번에 🌰150 · 최대 🌰2000</div></div>
-      <div class="gcard" data-g="pinball"><div class="gi">🎮</div><div class="gn">눈꽃 핀볼</div><div class="gd">플리퍼로 공을 쳐 올려 눈사람·트리·도토리 범퍼를 맞혀요! 공은 3개예요.</div><div class="gr">200점마다 🌰1 (최대 30)</div></div>
+      <div class="gcard" data-g="pinball"><div class="gi">🎮</div><div class="gn">눈꽃 핀볼</div><div class="gd">플리퍼로 공을 쳐 올려 눈사람·트리·도토리 범퍼를 맞혀요! 공은 3개예요.</div><div class="gr">10점마다 🌰1 · 최대 🌰2000</div></div>
     </div></div>`);
   document.querySelectorAll('.gcard').forEach(c=>c.onclick=()=>{ sfx('click'); ({block:startBlocks,wheel:startWheel,cards:startCards,puzzle:startPuzzle,bell:startBell,pinball:startPinball})[c.dataset.g](); });
 }
@@ -2986,7 +3019,7 @@ function startBlocks(){
 }
 
 /* ---------- 🎰 행운 룰렛 + 퀴즈 ---------- */
-const WHEEL=[10,30,0,50,20,100,0,1000];   // 룰렛 상품 (0은 꽝) · 최대 1000
+const WHEEL=[10,30,0,50,20,100,0,1000,10000];   // 룰렛 상품 (0은 꽝) · 최대 10000
 // ⏳ 룰렛은 10분 동안 최대 5번 (돌린 시각을 저장해서 새로고침해도 유지)
 const WHEEL_LIMIT=5, WHEEL_WINDOW=10*60*1000;
 function wheelUsed(){ const now=Date.now(); S.wheelLog=(S.wheelLog||[]).filter(t=>now-t<WHEEL_WINDOW).sort((a,b)=>a-b); return S.wheelLog; }
@@ -2998,14 +3031,14 @@ function startWheel(){
     <div style="text-align:center"><div class="rpointer">▼</div><canvas id="rcv" width="280" height="280"></canvas>
     <div class="rowbtns" style="margin-top:6px"><button class="btn gold" id="spin">🎰 룰렛 돌리기!</button></div>
     <div class="gstat wleft" id="wLeft"></div></div>
-    <div id="wq"><div class="bubble" style="cursor:default;min-height:0">🐵 룰렛을 돌려서 나온 도토리를 걸고 퀴즈에 도전해요! 정답을 맞히면 그 도토리를 받아요. <b>최대 🌰1000!</b></div></div></div></div>`,'wide');
+    <div id="wq"><div class="bubble" style="cursor:default;min-height:0">🐵 룰렛을 돌려서 나온 도토리를 걸고 퀴즈에 도전해요! 정답을 맞히면 그 도토리를 받아요. <b>최대 🌰10000!</b></div></div></div></div>`,'wide');
   const cv=$('rcv'), g=cv.getContext('2d'); let ang=0, spinning=false, raf=0;
-  const cols=['#ff8fa3','#7fd3ff','#c9d0dc','#ffd93d','#7CFFB2','#c77dff','#c9d0dc','#ffb347'];
+  const cols=['#ff8fa3','#7fd3ff','#c9d0dc','#ffd93d','#7CFFB2','#c77dff','#c9d0dc','#ffb347','#ff6b6b'];
   function draw(){
     const c=140, r=132, n=WHEEL.length; g.clearRect(0,0,280,280);
     for(let i=0;i<n;i++){ const a0=ang+i*2*Math.PI/n-Math.PI/2, a1=a0+2*Math.PI/n;
       g.beginPath(); g.moveTo(c,c); g.arc(c,c,r,a0,a1); g.closePath(); g.fillStyle=cols[i]; g.fill(); g.strokeStyle='#fff'; g.lineWidth=3; g.stroke();
-      g.save(); g.translate(c,c); g.rotate(a0+Math.PI/n); g.fillStyle='#5a4632'; g.font=(WHEEL[i]>=1000?'17px':WHEEL[i]>=100?'19px':'20px')+' Jua, sans-serif'; g.textAlign='right';
+      g.save(); g.translate(c,c); g.rotate(a0+Math.PI/n); g.fillStyle='#5a4632'; g.font=(WHEEL[i]>=10000?'15px':WHEEL[i]>=1000?'17px':WHEEL[i]>=100?'19px':'20px')+' Jua, sans-serif'; g.textAlign='right';
       if(WHEEL[i]){ const t=String(WHEEL[i]); g.fillText(t,r-12,7); const im=EMO_IMG['🌰'], tw=g.measureText(t).width;
         if(im&&im.complete&&im.naturalWidth) g.drawImage(im,r-12-tw-26,-12,26,25); else g.fillText('🌰',r-12-tw-1,7); }
       else g.fillText('꽝',r-12,7);
@@ -3355,9 +3388,9 @@ function startPinball(){
     if(!over){ acc+=el; let n=0; while(acc>=STEP && n<40){ step(STEP); acc-=STEP; n++; } if(n>=40) acc=0; }
     draw(); if(!over) raf=requestAnimationFrame(loop); }
   function end(){
-    over=true; cancelAnimationFrame(raf); draw(); const reward=Math.min(30,Math.floor(score/200));
+    over=true; cancelAnimationFrame(raf); draw(); const reward=Math.min(2000,Math.floor(score/10));   // 10점마다 🌰1 · 최대 2000
     $('pbEnd').innerHTML=`<div class="cdone"><div class="feedback ${reward?'good':'bad'}" style="text-align:center;margin:0"><div class="big">🎮 게임 끝! ${score}점</div>
-      도토리 <b>🌰 ${reward}</b> 받았어요! (200점마다 🌰1)
+      도토리 <b>🌰 ${reward}</b> 받았어요! (10점마다 🌰1 · 최대 🌰2000)
       <div class="rowbtns"><button class="btn green" id="pbAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div></div></div>`;
     if(reward){ parkCoins(reward,$('pbEnd')); confetti(40); } else sfx('pop');
     $('pbAgain').onclick=startPinball;
@@ -3393,7 +3426,7 @@ function openHelp(){
     <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 10개씩 받아요.</li>
     <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
     <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>금융 퀴즈</b>도 은행 안에서 풀어요(미래 트리 광장을 통과하면 열려요).</li>
-    <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가, 눈꽃 은행 금융 퀴즈를 통과하면 열려요):📰 시장 소식을 읽고 <b>수요와 공급</b>에 따라 가격이 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 번 만큼 도토리를 받아요(최대 🌰${MKT_MAXR}).</li>
+    <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가, 눈꽃 은행 금융 퀴즈를 통과하면 열려요):📰 시장 소식을 읽고 <b>수요와 공급</b>에 따라 가격이 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 내가 가진 진짜 도토리로 거래해서, 번 만큼 늘고 잃은 만큼 줄어요.</li>
     <li>☀️ <b>태양광 발전기</b>(상점): 마을에 설치하면 게임을 켜 둔 동안 전기를 만들어요. 5분 뒤 전기가 다 만들어지면 <b>⚡ 전기 팔기</b> 버튼(위쪽 메뉴나 발전기 위)을 눌러 1대에 🌰${SOLAR.earn}을 벌어요(3대까지). 팔기 전까지는 더 만들지 않아요!</li>
     <li>🛖 상점에서 <b>구매하기</b>를 눌러 아이템을 사고, 상점의 <b>착용/설치·해제하기</b> 버튼으로 꾸며요. <b>내 아이템</b> 탭에서 가진 것만 모아 볼 수 있어요.</li>
     <li>🧪 <b>마법 시럽</b>을 사서 퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요.</li>
@@ -3676,6 +3709,7 @@ let pickAnimal=ANIMALS[0];
 function enterGame(){
   initAudio(); if(S.music) startMusic();
   $('start').classList.add('hidden'); $('hud').classList.remove('hidden');
+  { const back=mktSettle(); if(back) setTimeout(()=>toast(`📦 증권거래소에 남아 있던 물건을 팔아 도토리 🌰 ${back}개를 돌려받았어요!`),800); }   // 거래 도중 새로고침했을 때
   renderHud(); renderBuildings(); applyEquips();
   save(); submitScore();
   // 파산 화면 중에 새로고침했어도, 남은 시간만큼 흑백 화면을 계속 보여 줌
