@@ -443,6 +443,7 @@ button{font-family:'Jua','Malgun Gothic',sans-serif;cursor:pointer;border:none;c
 .depbar{height:10px;border-radius:99px;background:#e9dfcd;overflow:hidden;margin:4px 0}.depbar i{display:block;height:100%;background:linear-gradient(90deg,#7fd1a0,#3f8f55)}
 .depamt{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px}.depamt button{font-family:'Jua';font-size:14px;padding:6px 10px;border-radius:10px;background:#fff;box-shadow:0 3px 0 #d8c3a1}
 .depamt button:disabled{opacity:.45}
+.depamt button.depall{background:var(--gold);color:#5a4210;box-shadow:0 3px 0 #c9962a;flex-basis:100%}   /* 내 도토리 전부 예금 */
 .bankgrid .item{padding:12px 14px;gap:6px}
 .bankgrid .item .em{font-size:40px}
 .bankgrid .item .nm{font-size:19px}
@@ -506,7 +507,9 @@ svg.won{width:1em;height:1em;display:inline-block;vertical-align:-.14em}
 .mkres{background:#fffbea;border:2px dashed #f5c542;border-radius:14px;padding:8px 12px;margin-bottom:8px;font-size:14px;line-height:1.6;word-break:keep-all}
 .mkres .ok{color:#3f8f55;font-family:'Jua'}.mkres .no{color:#d0453f;font-family:'Jua'}
 .mktable{display:flex;flex-direction:column;gap:6px}
-.mkrow{display:grid;grid-template-columns:44px 70px 92px 80px 1fr;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:6px 10px;box-shadow:0 3px 0 #d8c3a1}
+.mkcht{display:block;text-align:center}.mkchart{width:100%;max-width:150px;height:auto;display:block;margin:0 auto;background:#fbf7ef;border-radius:8px}
+.mkhl{display:block;font-size:11px;color:#9b8466;line-height:1.3;margin-top:1px}
+.mkrow{display:grid;grid-template-columns:44px 64px 88px minmax(110px,150px) 76px 1fr;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:6px 10px;box-shadow:0 3px 0 #d8c3a1}
 .mkem{font-size:30px;text-align:center}.mknm{font-family:'Jua';font-size:17px}.mkpr{font-family:'Jua';font-size:17px}.mkpr small{font-size:13px;margin-left:2px}
 .mkhold{font-size:14px;color:#7d6a55}
 .mkbtns{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
@@ -519,7 +522,7 @@ svg.won{width:1em;height:1em;display:inline-block;vertical-align:-.14em}
 .mkpred{display:flex;gap:5px}.mkpred button{background:#fff;color:#5a4210;box-shadow:0 3px 0 #d8c3a1}
 .mkpred button.on{background:var(--gold);color:#5a4210}
 .mktip{text-align:center;font-size:13px;color:#9b8466;margin-top:6px}
-@media (max-width:640px){.mkrow{grid-template-columns:38px 1fr 1fr;}.mkhold{grid-column:2/4}.mkbtns{grid-column:1/4;justify-content:center}.mkrule{grid-template-columns:1fr}}
+@media (max-width:640px){.mkrow{grid-template-columns:38px 1fr 1fr;}.mkcht{grid-column:1/4}.mkhold{grid-column:2/4}.mkbtns{grid-column:1/4;justify-content:center}.mkrule{grid-template-columns:1fr}}
 /* 핀볼처럼 빠른 게임 중에는 뒤쪽 마을 효과를 잠시 멈춰서 태블릿이 버벅이지 않게 */
 html.lite .overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(30,35,70,.78)}
 html.lite #aurora{display:none}
@@ -530,6 +533,12 @@ html.lite #world, html.lite #world *{animation-play-state:paused!important;trans
 .bellbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px}
 .belltable{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"a b" "c d";gap:10px;max-width:640px;margin:0 auto;align-items:center}
 #bs1{grid-area:a}#bs2{grid-area:b}#bs0{grid-area:c}.bellbtn{grid-area:d}
+/* 4명(🐺 늑대 추가): 위에 친구 3명, 아래에 나와 종 */
+.belltable.four{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"a b e" "x c d";max-width:760px}
+.belltable.four #bs3{grid-area:e}
+.bellseat.dark .bellwho{color:#4a4e6b}
+.bellseat.dark .bellcard{border-color:#5b5f86;background:#f1f1f7}
+.darktag{font-size:11px;background:#3b3f5c;color:#fff;border-radius:99px;padding:1px 7px;margin-left:2px;vertical-align:1px}
 .bellseat{text-align:center}
 .bellwho{font-family:'Jua';font-size:15px;color:#7d6a55;margin-bottom:4px}
 .bellseat.me .bellwho{color:#3f8f55}
@@ -943,7 +952,7 @@ const ITEMS = [
   {id:'dog_poodle', em:'', name:'푸들', price:100, kind:'pet', desc:'곱슬곱슬 푸들이 총총총 산책해요.'},
   {id:'dog_maltese',em:'', name:'말티즈', price:100, kind:'pet', desc:'분홍 리본을 단 하얀 말티즈가 따라다녀요.'},
   {id:'tree',     em:'🎄', name:'크리스마스 트리', price:40, kind:'decor', desc:'한 그루씩 살 수 있어요. 알록달록 전구가 깜빡이고 별이 빛나요.'},
-  {id:'solar',    em:'☀️', name:'태양광 발전기', price:150, kind:'decor', desc:'마을에 설치하면 햇빛으로 전기를 만들어요. 5분마다 전기가 다 만들어지면 ⚡ 전기 팔기 버튼을 눌러 1대에 도토리 🌰5000을 벌어요! (3대까지)'},
+  {id:'solar',    em:'☀️', name:'태양광 발전기', price:10000, kind:'decor', desc:'마을에 설치하면 햇빛으로 전기를 만들어요. 5분마다 전기가 다 만들어지면 ⚡ 전기 팔기 버튼을 눌러 1대에 도토리 🌰5000을 벌어요! (3대까지)'},
   {id:'shooting', em:'🌠', name:'별똥별', price:120, kind:'sky', desc:'밤하늘에 별똥별이 슝~ 떨어져요.'},
   {id:'crown',    em:'👑', name:'눈꽃 왕관', price:150, kind:'wear', slot:'hat', desc:'머리 주위로 눈꽃이 빙글빙글 돌아요.'},
   {id:'aurora',   em:'🌌', name:'오로라 하늘', price:200, kind:'sky', desc:'하늘에 신비로운 오로라가 일렁여요.'},
@@ -2547,7 +2556,7 @@ function openBank(msg){
         ${dep?`<div class="loanbox">맡긴 돈 🌰 ${dep.amt} → 만기 때 <b>🌰 ${dep.amt+depositInterest(dep.amt)}</b><div class="depbar"><i id="depFill" style="width:${depositPct()}%"></i></div><span id="depLeft">${depLeft>0?'⏳ '+fmtLeft(depLeft)+' 남았어요':'✅ 만기! 이자를 받을 수 있어요'}</span></div>
           <button class="btn ${depLeft>0?'cream':'gold'}" id="bWithdraw">${depLeft>0?'↩ 지금 찾기 (이자 없음)':'🎉 원금 + 이자 찾기'}</button>`
         :`<div class="loanbox">얼마를 맡길까요? (내 도토리 🌰 ${S.coins})</div>
-          <div class="depamt">${DEPOSIT.choices.map(n=>`<button data-dep="${n}" ${S.coins>=n?'':'disabled'}>🌰 ${n}</button>`).join('')}</div>`}
+          <div class="depamt">${DEPOSIT.choices.map(n=>`<button data-dep="${n}" ${S.coins>=n?'':'disabled'}>🌰 ${n}</button>`).join('')}<button class="depall" data-dep="${S.coins}" ${S.coins>0?'':'disabled'}>💰 전부 맡기기 (🌰 ${S.coins})</button></div>`}
       </div>
       <div class="item">
         <div class="em">🧪</div><div class="nm">마법 시럽 대출</div>
@@ -2862,6 +2871,25 @@ function startMarket(){
   let day=1, preds=0, predN=0, done=false;
   const prices={}, prev={}, hold={}, pred={}; let news=[], results=[];
   MKT_GOODS.forEach(g=>{ prices[g.k]=Math.max(3,Math.round(g.base*rnd(.85,1.15))); prev[g.k]=prices[g.k]; hold[g.k]=0; });
+  // 📈 주식 차트: 게임 시작 전 6일 동안의 가격도 만들어 두고, 하루 지날 때마다 이어 그려요
+  const PRE=6, hist={};
+  MKT_GOODS.forEach(g=>{ const a=[prices[g.k]]; let v=prices[g.k];
+    for(let i=0;i<PRE;i++){ v=Math.max(2,Math.min(99,Math.round(v/rnd(.88,1.12)))); a.unshift(v); } hist[g.k]=a; });
+  // 작은 선 차트 (빨강: 시작 때보다 오름 · 파랑: 내림 — 우리나라 주식 차트 색)
+  function chartSVG(k){
+    const a=hist[k], w=132, h=46, px=4, top=6, bot=6;
+    const mn=Math.min(...a), mx=Math.max(...a), rg=Math.max(1,mx-mn);
+    const X=i=>px+i*(w-2*px)/(a.length-1), Y=v=>top+(1-(v-mn)/rg)*(h-top-bot);
+    const now=a[a.length-1], base=a[PRE], col=now>base?'#e3404b':now<base?'#2f6fd0':'#8a8f99';
+    const pts=a.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    const area=`M${X(0).toFixed(1)},${h} L${pts.replace(/ /g,' L')} L${X(a.length-1).toFixed(1)},${h} Z`;
+    return `<svg class="mkchart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${gOf(k).nm} 가격 차트: 최고 ${mx}, 최저 ${mn}, 지금 ${now}">
+      <path d="${area}" fill="${col}" opacity=".12"/>
+      <line x1="${X(PRE).toFixed(1)}" y1="2" x2="${X(PRE).toFixed(1)}" y2="${h}" stroke="#b9a88e" stroke-width="1" stroke-dasharray="2 2"/>
+      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+      <circle cx="${X(a.length-1).toFixed(1)}" cy="${Y(now).toFixed(1)}" r="3" fill="${col}"/>
+    </svg><span class="mkhl">최고 ${mx} · 최저 ${mn}</span>`;
+  }
   const pickNews=()=>shuffle(MKT_GOODS.map(g=>g.k)).slice(0,Math.random()<.45?1:2).map(k=>({k,t:pickOne(['D+','D-','S+','S-'])}));
   news=pickNews();
   const goodsVal=()=>MKT_GOODS.reduce((a,g)=>a+hold[g.k]*prices[g.k],0), total=()=>S.coins+goodsVal();
@@ -2879,12 +2907,13 @@ function startMarket(){
       <div class="mktable">${MKT_GOODS.map(g=>{ const ch=prices[g.k]-prev[g.k];
         return `<div class="mkrow"><span class="mkem">${g.em}</span><span class="mknm">${g.nm}</span>
           <span class="mkpr">🌰 ${prices[g.k]} <small class="${ch>0?'up':ch<0?'down':''}">${ch>0?'▲'+ch:ch<0?'▼'+(-ch):'-'}</small></span>
+          <span class="mkcht">${chartSVG(g.k)}</span>
           <span class="mkhold">가진 것 <b>${hold[g.k]}</b>개</span>
           <span class="mkbtns"><button data-buy="${g.k}" data-n="1" ${cash>=prices[g.k]&&!done?'':'disabled'}>사기 +1</button><button data-buy="${g.k}" data-n="5" ${cash>=prices[g.k]*5&&!done?'':'disabled'}>+5</button><button class="sell" data-sell="${g.k}" data-n="1" ${hold[g.k]&&!done?'':'disabled'}>팔기 -1</button><button class="sell" data-sell="${g.k}" data-n="all" ${hold[g.k]&&!done?'':'disabled'}>모두 팔기</button></span></div>`; }).join('')}</div>
       ${!last?`<div class="mknews"><b>📰 내일의 시장 소식</b> <small>가격이 오를까요, 내릴까요? 예상해 보세요!</small>${news.map(n=>`<div class="mknewsrow"><span>${MKT_NEWS[n.k][n.t]}</span><span class="mkpred"><button data-pk="${n.k}" data-pv="up" class="${pred[n.k]==='up'?'on':''}">📈 오른다</button><button data-pk="${n.k}" data-pv="down" class="${pred[n.k]==='down'?'on':''}">📉 내린다</button></span></div>`).join('')}</div>`
         :`<div class="mknews"><b>🏁 오늘이 마지막 날이에요!</b> <small>장을 마감하면 가진 물건을 지금 가격으로 모두 팔아요.</small></div>`}
       <div class="rowbtns"><button class="btn ${last?'gold':'green'}" id="mkNext">${last?'🏁 장 마감하기':'🌙 다음 날로 ▶'}</button></div>
-      <div class="mktip">💡 수요↑ · 공급↓ → 가격 📈 &nbsp;|&nbsp; 수요↓ · 공급↑ → 가격 📉</div>
+      <div class="mktip">💡 수요↑ · 공급↓ → 가격 📈 &nbsp;|&nbsp; 수요↓ · 공급↑ → 가격 📉<br>📈 차트: 점선 = 게임 시작한 날 · <b style="color:#e3404b">빨강</b>은 그때보다 오름, <b style="color:#2f6fd0">파랑</b>은 내림</div>
       <div id="mkEnd"></div></div>`,'wide');
     document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{ if(done) return; const k=b.dataset.buy, n=Math.min(+b.dataset.n,Math.floor(S.coins/prices[k])); if(n<1) return; S.coins-=n*prices[k]; hold[k]+=n; persist(); sfx('coin'); render(true); });
     document.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{ if(done) return; const k=b.dataset.sell, n=b.dataset.n==='all'?hold[k]:Math.min(1,hold[k]); if(n<1) return; S.coins+=n*prices[k]; hold[k]-=n; persist(); sfx('pop'); render(true); });
@@ -2898,7 +2927,7 @@ function startMarket(){
         const p=pred[g.k]; let ok=false; if(p){ predN++; ok=(p==='up')===up; if(ok) preds++; }   // 예상은 수요·공급 원리로 채점
         results.push({k:g.k,t:n.t,weak,p,ok}); }
       else f=rnd(.92,1.08);
-      prices[g.k]=Math.max(2,Math.min(99,Math.round(prices[g.k]*f))); });
+      prices[g.k]=Math.max(2,Math.min(99,Math.round(prices[g.k]*f))); hist[g.k].push(prices[g.k]); });
     results.forEach(r=>{ r.from=prev[r.k]; r.to=prices[r.k]; });
     for(const k in pred) delete pred[k];
     day++; news=pickNews(); persist(); sfx('bell'); render();   // 바뀐 가격으로 저장
@@ -2931,7 +2960,7 @@ function openPark(){
     <div class="hostname">몽키 매니저</div>
     <div class="bubble" style="cursor:default;min-height:0;margin-bottom:16px">🐵 어서 와, 눈꽃랜드이야! 공부하다 쉬고 싶을 때 언제든 놀러 와. 놀면서 배운 내용도 떠올리고 <b>도토리🌰</b>도 모을 수 있어. 어떤 놀이기구를 탈래?</div>
     <div class="parkmenu">
-      <div class="gcard" data-g="block"><div class="gi">🧱</div><div class="gn">눈꽃 블록 쌓기</div><div class="gd">떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채우면 줄이 사라져요!</div><div class="gr">한 줄마다 🌰3 (최대 30)</div></div>
+      <div class="gcard" data-g="block"><div class="gi">🧱</div><div class="gn">눈꽃 블록 쌓기</div><div class="gd">떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채우면 줄이 사라져요!</div><div class="gr">한 줄마다 🌰250 · 최대 🌰5000</div></div>
       <div class="gcard" data-g="wheel"><div class="gi">🎰</div><div class="gn">행운 룰렛</div><div class="gd">룰렛을 돌려 나온 도토리를 걸고, 배운 내용 퀴즈를 맞히면 받아요!</div><div class="gr">최대 🌰10000 · 10분에 5번</div></div>
       <div class="gcard" data-g="cards"><div class="gi">🃏</div><div class="gn">겨울 카드 뒤집기</div><div class="gd">카드를 두 장씩 뒤집어 눈사람, 트리, 썰매 같은 같은 겨울 그림 짝을 찾아요!</div><div class="gr">완성하면 🌰10~20</div></div>
       <div class="gcard" data-g="puzzle"><div class="gi">🧩</div><div class="gn">동해 풍경 퍼즐</div><div class="gd">추암 촛대바위, 무릉계곡 같은 우리 동해시의 아름다운 풍경 사진 퍼즐을 맞춰요!</div><div class="gr">완성하면 🌰10~30</div></div>
@@ -2951,7 +2980,7 @@ function startBlocks(){
     <canvas id="bcv" width="${COLS*cell}" height="${ROWS*cell}"></canvas>
     <div class="gside">
       <div class="gstat">다음 블록<canvas id="bnext" width="${cell*4}" height="${cell*3}" style="display:block;margin-top:6px"></canvas></div>
-      <div class="gstat">없앤 줄 <span id="bLines">0</span><small>한 줄마다 🌰3 · 최대 🌰30</small></div>
+      <div class="gstat">없앤 줄 <span id="bLines">0</span><small>한 줄마다 🌰250 · 최대 🌰5000</small></div>
       <div class="gstat">속도 ⚡ <span id="bLevel">1</span>단계<small>블록을 쌓을수록 점점 빨라져요!</small></div>
       <div class="gstat" style="font-size:13px;font-family:'Gowun Dodum'">⬅➡ 옮기기 · ⬆ 돌리기<br>⬇ 빨리 내리기 · 스페이스 바로 놓기</div>
       <div class="pad"><span></span><button data-k="rot">⟳</button><span></span><button data-k="L">◀</button><button data-k="D">▼</button><button data-k="R">▶</button><span></span><button data-k="drop">⤓</button><span></span></div>
@@ -3005,7 +3034,7 @@ function startBlocks(){
     draw();
   }
   function gameOver(){
-    over=true; clearInterval(timer); const reward=Math.min(30,lines*3);
+    over=true; clearInterval(timer); const reward=Math.min(5000,lines*250);   // 한 줄마다 🌰250 · 최대 5000 (20줄)
     $('bMsg').innerHTML=`<div class="feedback ${reward?'good':'bad'}" style="text-align:center"><div class="big">${reward?'🎉 블록 쌓기 끝!':'블록이 꼭대기까지 쌓였어요!'}</div>없앤 줄 <b>${lines}줄</b> → 도토리 <b>🌰 ${reward}</b> 받았어요!</div>
       <div class="rowbtns"><button class="btn green" id="bAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div>`;
     if(reward) parkCoins(reward,$('bMsg')); else sfx('wrong');
@@ -3213,28 +3242,31 @@ function playPuzzle(pi,n){
    나·몽키·꿀꿀이의 카드가 차례로 펼쳐져요. 펼쳐진 카드에서 같은 그림이 '딱 5개'가 되면 먼저 종을 쳐요.
    친구들도 조금 늦게 종을 쳐요. 맞게 치면 +1, 5개가 아닐 때 치면 -1. 카드 30장 · 점점 빨라짐. */
 const BELL_PICS=['🌰','⛄','🎄','🎁'];
-const BELL_RIVALS=[{em:'🐵',name:'몽키'},{em:'🐷',name:'꿀꿀이'}];
+const BELL_RIVALS=[{em:'🐵',name:'몽키'},{em:'🐷',name:'꿀꿀이'},{em:'🐺',name:'늑대',dark:true}];
 // 친구들 반응 속도(초)와 놓치는 확률 — 사람처럼 들쭉날쭉
-const BELL_RIVAL_SPEED=[null,{min:1.2,max:2.3,miss:.25},{min:1.5,max:2.8,miss:.33}];
+// 🐺 늑대는 '다크호스': 평소엔 자주 놓치지만, 한번 노리면 누구보다 번개처럼 빨라요!
+const BELL_RIVAL_SPEED=[null,{min:1.2,max:2.3,miss:.25},{min:1.5,max:2.8,miss:.33},{min:1.6,max:3,miss:.4,dash:.35,dashMin:.55,dashMax:.95}];
 function startBell(){
   if(parkCleanup){ parkCleanup(); parkCleanup=null; }
   const TOTAL=30;
-  const slots=[null,null,null];          // 0: 나, 1: 몽키, 2: 꿀꿀이 — 맨 위에 펼쳐진 카드
-  const score=[0,0,0]; let wrong=0, flips=0, turn=0, over=false, flipT=null, cpuT=[], lockUntil=0, ready=false;
+  const N=4;                              // 0: 나, 1: 몽키, 2: 꿀꿀이, 3: 늑대(다크호스) — 맨 위에 펼쳐진 카드
+  const slots=Array(N).fill(null);
+  const score=Array(N).fill(0); let wrong=0, flips=0, turn=0, over=false, flipT=null, cpuT=[], lockUntil=0, ready=false;
   openModal(parkHead('눈꽃 종치기',true)+`<div class="panel-body">
     <div class="bellbar"><span class="gstat">남은 카드 <b id="blLeft">${TOTAL}</b></span><span class="gstat">내 점수 <b id="blMe">0</b></span>
-      <span class="gstat">${emo('🐵')} 몽키 <b id="blR1">0</b></span><span class="gstat">${emo('🐷')} 꿀꿀이 <b id="blR2">0</b></span></div>
-    <div class="belltable">
+      <span class="gstat">${emo('🐵')} 몽키 <b id="blR1">0</b></span><span class="gstat">${emo('🐷')} 꿀꿀이 <b id="blR2">0</b></span><span class="gstat">🐺 늑대 <b id="blR3">0</b></span></div>
+    <div class="belltable four">
       <div class="bellseat" id="bs1"><div class="bellwho">${emo('🐵')} 몽키</div><div class="bellcard" id="bc1"></div></div>
       <div class="bellseat" id="bs2"><div class="bellwho">${emo('🐷')} 꿀꿀이</div><div class="bellcard" id="bc2"></div></div>
+      <div class="bellseat dark" id="bs3"><div class="bellwho">🐺 늑대 <span class="darktag">다크호스</span></div><div class="bellcard" id="bc3"></div></div>
       <div class="bellseat me" id="bs0"><div class="bellwho">${emo(S.animal)} 나</div><div class="bellcard" id="bc0"></div></div>
       <button class="bellbtn" id="blBell" aria-label="종 치기">🔔<small>종 치기 (스페이스바)</small></button>
     </div>
     <div class="bellmsg" id="blMsg">펼쳐진 카드에서 <b>같은 그림이 딱 5개</b>가 되면 종을 쳐요! 준비~</div>
     <div id="blEnd"></div></div>`,'wide');
   const cardHTML=c=>c?`<div class="bpics n${c.n}">${Array(c.n).fill(`<span>${c.p}</span>`).join('')}</div>`:'<div class="bempty">?</div>';
-  const draw=()=>{ for(let i=0;i<3;i++){ const el=$('bc'+i); if(el) el.innerHTML=cardHTML(slots[i]); }
-    $('blLeft').textContent=TOTAL-flips; $('blMe').textContent=score[0]; $('blR1').textContent=score[1]; $('blR2').textContent=score[2]; };
+  const draw=()=>{ for(let i=0;i<N;i++){ const el=$('bc'+i); if(el) el.innerHTML=cardHTML(slots[i]); }
+    $('blLeft').textContent=TOTAL-flips; $('blMe').textContent=score[0]; for(let i=1;i<N;i++) $('blR'+i).textContent=score[i]; };
   const counts=()=>{ const m={}; slots.forEach(c=>{ if(c) m[c.p]=(m[c.p]||0)+c.n; }); return m; };
   const isFive=()=>Object.values(counts()).some(v=>v===5);
   const msg=(t,cls)=>{ const m=$('blMsg'); if(m){ m.className='bellmsg '+(cls||''); m.innerHTML=t; } };
@@ -3247,18 +3279,19 @@ function startBell(){
     let c={p:pickOne(BELL_PICS), n:1+Math.floor(Math.random()*5)};
     const cur=counts(); const others=slots.filter((s,i)=>s&&i!==turn);
     if(Math.random()<.35 && others.length){ const o=pickOne(others); const have=others.filter(s=>s.p===o.p).reduce((a,s)=>a+s.n,0); if(have<5){ c={p:o.p,n:5-have}; } }
-    slots[turn]=c; flips++; turn=(turn+1)%3; sfx('blip');
-    const seat=$('bs'+((turn+2)%3)); if(seat){ seat.classList.remove('flipped'); void seat.offsetWidth; seat.classList.add('flipped'); }
+    slots[turn]=c; flips++; turn=(turn+1)%N; sfx('blip');
+    const seat=$('bs'+((turn+N-1)%N)); if(seat){ seat.classList.remove('flipped'); void seat.offsetWidth; seat.classList.add('flipped'); }
     draw(); ready=true; clearCpu();
     if(isFive()){
       // 친구들도 사람처럼: 반응 시간이 들쭉날쭉하고, 가끔 못 보고 지나쳐요 (꿀꿀이는 몽키보다 조금 느긋)
-      [1,2].forEach(r=>{ const P=BELL_RIVAL_SPEED[r]; if(Math.random()<P.miss) return;
-        const d=(P.min+Math.random()*(P.max-P.min))*1000 - Math.min(300,flips*8);
+      [1,2,3].forEach(r=>{ const P=BELL_RIVAL_SPEED[r]; if(Math.random()<P.miss) return;
+        const dash=P.dash && Math.random()<P.dash;   // 🐺 다크호스의 번개 같은 한 방!
+        const d=(dash ? P.dashMin+Math.random()*(P.dashMax-P.dashMin) : P.min+Math.random()*(P.max-P.min))*1000 - Math.min(300,flips*8);
         cpuT.push(setTimeout(()=>ring(r), d)); });
       flipT=setTimeout(flip, Math.max(speed(), 2900));   // 5개가 나오면 찾을 시간을 조금 더 줘요
     } else {
       // 아주 가끔은 친구가 착각해서 잘못 쳐요
-      if(Math.random()<.05){ const r=1+Math.floor(Math.random()*2); cpuT.push(setTimeout(()=>ring(r), 700+Math.random()*700)); }
+      if(Math.random()<.05){ const r=1+Math.floor(Math.random()*(N-1)); cpuT.push(setTimeout(()=>ring(r), 700+Math.random()*700)); }
       flipT=setTimeout(flip, speed());
     }
   }
@@ -3271,8 +3304,8 @@ function startBell(){
       score[who]++; sfx(who===0?'correct':'bell');
       const what=Object.entries(counts()).find(([p,v])=>v===5)[0];
       if(who===0){ const [x,y]=elCenter($('blBell')); burst(x,y,{n:20,speed:220,g:160,life:1,size:4}); msg(`🎉 딩동! ${what} 5개를 내가 먼저 찾았어요! +1`,'good'); }
-      else msg(`${BELL_RIVALS[who-1].em} ${BELL_RIVALS[who-1].name}가 먼저 쳤어요! (${what} 5개)`,'bad');
-      for(let i=0;i<3;i++) slots[i]=null;   // 펼쳐진 카드를 모두 가져가요
+      else msg(`${BELL_RIVALS[who-1].em} ${BELL_RIVALS[who-1].name}가 먼저 쳤어요! (${what} 5개)${BELL_RIVALS[who-1].dark?' 🌑 다크호스의 습격!':''}`,'bad');
+      for(let i=0;i<N;i++) slots[i]=null;   // 펼쳐진 카드를 모두 가져가요
       draw(); ready=false; flipT=setTimeout(flip, 1100);
     } else if(who===0){
       wrong++; score[0]=Math.max(0,score[0]-1); sfx('wrong'); lockUntil=performance.now()+500;
@@ -3284,11 +3317,11 @@ function startBell(){
   }
   function end(){
     over=true; clearTimeout(flipT); clearCpu();
-    const best=Math.max(score[1],score[2]), win=score[0]>best;
+    const best=Math.max(...score.slice(1)), win=score[0]>best;
     const reward=Math.min(2000, score[0]*150 + (win?500:0));   // 맞게 친 종 1번 = 🌰150, 1등 보너스 🌰500 · 최대 2000
     $('blEnd').innerHTML=`<div class="cdone"><div class="feedback ${win?'good':'bad'}" style="text-align:center;margin:0">
       <div class="big">${win?'🏆 내가 1등!':score[0]===best?'🤝 비겼어요!':'😅 아쉽게 졌어요!'}</div>
-      나 ${score[0]}점 · 🐵 몽키 ${score[1]}점 · 🐷 꿀꿀이 ${score[2]}점${wrong?` · 잘못 친 종 ${wrong}번`:''}<br>
+      나 ${score[0]}점 · 🐵 몽키 ${score[1]}점 · 🐷 꿀꿀이 ${score[2]}점 · 🐺 늑대 ${score[3]}점${wrong?` · 잘못 친 종 ${wrong}번`:''}<br>
       도토리 <b>🌰 ${reward}</b> 받았어요! (종 1번에 🌰150${win?' + 1등 보너스 🌰500':''})
       <div class="rowbtns"><button class="btn green" id="blAgain">🔁 한 번 더</button><button class="btn cream" onclick="openPark()">🎡 다른 놀이기구</button></div></div></div>`;
     if(reward) parkCoins(reward,$('blEnd')); if(win) confetti(60); else sfx('pop');
