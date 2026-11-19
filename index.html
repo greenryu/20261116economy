@@ -3025,7 +3025,7 @@ function openExchange(){
   openModal(exchHead('주식 거래 게임')+`<div class="panel-body">
     <div class="hostname">너굴 중개인</div>
     <div class="bubble" style="cursor:default;min-height:0;margin-bottom:12px">🦝 어서 와, <b>눈꽃 증권거래소</b>야! 진짜 증권거래소에서는 회사의 <b>주식</b>을 사고팔아. 주식 값도 사려는 사람과 팔려는 사람에 따라 매일 오르내리지.<br>
-      우리 증권거래소에서 주식을 사고팔 수 있는 회사는 ${mktGoods().map(g=>`${g.em} ${g.nm}`).join(', ')}! <small style="color:#9b8466">(이름 앞 <b>(주)</b>는 ‘주식회사’라는 뜻이야. 주식을 팔아 모은 돈으로 일하는 회사지!)</small>${mktGoods().some(g=>g.k==='power')?'':`<br>🔒 ⚡ <b>(주)눈꽃에너지</b> 주식은 아직 살 수 없어요. ${MKT_LOCK_MSG}<br>`}<b>📰 내일의 주식 뉴스</b>을 읽고, 주식 값이 오를지 내릴지 생각해서 <b>싸게 사고 비싸게 팔아</b> 봐.</div>
+      우리 증권거래소에서 주식을 사고팔 수 있는 회사는 ${mktGoods().map(g=>`${g.em} ${g.nm}`).join(', ')}! <small style="color:#9b8466">(이름 앞 <b>(주)</b>는 ‘주식회사’라는 뜻이야. 주식을 팔아 모은 돈으로 일하는 회사지!)</small>${mktGoods().some(g=>g.k==='power')?'':`<br>🔒 ⚡ <b>(주)눈꽃에너지</b> 주식은 아직 살 수 없어요. ${MKT_LOCK_MSG}<br>`}<b>📰 내일의 주식 뉴스</b>를 읽고, 주식 값이 오를지 내릴지 생각해서 <b>싸게 사고 비싸게 팔아</b> 봐.</div>
     <div class="mkrule">
       <div class="up">📈 <b>주식 값이 올라요</b><br>주식을 사려는 사람(수요)이 늘 때<br>팔려고 나온 주식(공급)이 줄 때</div>
       <div class="down">📉 <b>주식 값이 내려요</b><br>주식을 사려는 사람(수요)이 줄 때<br>팔려고 나온 주식(공급)이 늘 때</div>
