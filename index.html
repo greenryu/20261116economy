@@ -2572,12 +2572,12 @@ function celebrateUnlock(k){
 /* =========================================================
    🏦 눈꽃 은행 : 마법 시럽 대출 + 은행원 꿀꿀이의 방문
    ========================================================= */
-const LOAN={principal:40, interest:10, maxDebt:100, part:25, late:5};   // 원금·이자·빚 한도·나눠 갚기·연체 이자
+const LOAN={principal:10000, interest:2000, maxDebt:50000, part:5000, late:1000};   // 원금·이자(20%)·빚 한도(시럽 4병)·나눠 갚기·연체 이자 — 퀴즈 1문제 🌰1000 기준
 const ANGRY_AFTER=2;   // 연체 2번 뒤에는 은행원이 화를 내며 찾아옴 ("한 번 더 미루면 파산!")
 const BANKRUPT_AT=3;   // 연체(다음에 갚기) 3번째 → 파산
 const loanTotal=()=>LOAN.principal+LOAN.interest;
 /* ---------- 💰 도토리 예금 (저축): 맡기고 10분 뒤 이자 10% ---------- */
-const DEPOSIT={mins:10, rate:.1, choices:[20,50,100,200,500]};
+const DEPOSIT={mins:10, rate:.1, choices:[1000,5000,10000,30000,50000]};   // 대출(원금 🌰10000)·퀴즈 보상(1문제 🌰1000)에 맞춘 금액
 const depositInterest=(a,r)=>Math.max(1,Math.floor(a*(r||DEPOSIT.rate)));   // r: 맡길 때 정해진 이자율 (경제 위기 때는 더 높아요)
 const depositRateNow=()=>(typeof crisisOn==='function'&&crisisOn())?CRISIS.depRate:DEPOSIT.rate;
 const depositLeftMs=()=>S.deposit?Math.max(0,S.deposit.at+DEPOSIT.mins*60000-Date.now()):0;
@@ -2618,7 +2618,7 @@ function openBank(msg){
         ${dep?`<div class="loanbox">맡긴 돈 🌰 ${dep.amt} (이자 ${(dep.rate||DEPOSIT.rate)*100}%) → 만기 때 <b>🌰 ${dep.amt+depositInterest(dep.amt,dep.rate)}</b><div class="depbar"><i id="depFill" style="width:${depositPct()}%"></i></div><span id="depLeft">${depLeft>0?'⏳ '+fmtLeft(depLeft)+' 남았어요':'✅ 만기! 이자를 받을 수 있어요'}</span></div>
           <button class="btn ${depLeft>0?'cream':'gold'}" id="bWithdraw">${depLeft>0?'↩ 지금 찾기 (이자 없음)':'🎉 원금 + 이자 찾기'}</button>`
         :`<div class="loanbox">얼마를 맡길까요? (내 도토리 🌰 ${S.coins})</div>
-          <div class="depamt">${DEPOSIT.choices.map(n=>`<button data-dep="${n}" ${S.coins>=n?'':'disabled'}>🌰 ${n}</button>`).join('')}<button class="depall" data-dep="${S.coins}" ${S.coins>0?'':'disabled'}>💰 전부 맡기기 (🌰 ${S.coins})</button></div>`}
+          <div class="depamt">${DEPOSIT.choices.map(n=>`<button data-dep="${n}" ${S.coins>=n?'':'disabled'}>🌰 ${n.toLocaleString()}</button>`).join('')}<button class="depall" data-dep="${S.coins}" ${S.coins>0?'':'disabled'}>💰 전부 맡기기 (🌰 ${S.coins})</button></div>`}
       </div>
       <div class="item">
         <div class="em">🧪</div><div class="nm">마법 시럽 대출</div>
@@ -2892,7 +2892,8 @@ const SHOP_LINES=['어서 와~ 도토리로 마을을 예쁘게 꾸며 봐! 🌰
 function openShop(){
   sfx('click');
   const tabs=[['all','전체'],['mine','🎒 내 아이템'],['wear','나 꾸미기'],['decor','마을 장식'],['sky','하늘·특별 효과']];
-  const list=ITEMS.filter(it=>shopTab==='all'||(shopTab==='mine'?qty(it.id)>0:shopTab==='sky'?['sky','pet','sound'].includes(it.kind):it.kind===shopTab));
+  // 🧪 마법 시럽은 상점에서 팔지 않아요 (눈꽃 은행에서 대출로만 받을 수 있음) · 가진 게 있으면 '내 아이템'에만 보여요
+  const list=ITEMS.filter(it=>(it.kind!=='potion'||shopTab==='mine') && (shopTab==='all'||(shopTab==='mine'?qty(it.id)>0:shopTab==='sky'?['sky','pet','sound'].includes(it.kind):it.kind===shopTab)));
   openModal(`<div class="panel-head"><div class="host">${emo('🐿️')}</div><h2>다람이네 상점<div style="font-size:.6em;color:#6c8f78">내 도토리: 🌰 ${S.coins}</div></h2><button class="closeX" onclick="closeModal()">✕</button></div>
    <div class="panel-body">
     <div class="shopkeeper"><div class="bubble" id="shopTalk">🐿️ <b>다람이</b> : ${SHOP_LINES[Math.floor(Math.random()*SHOP_LINES.length)]}</div></div>
@@ -2903,8 +2904,9 @@ function openShop(){
     <div class="shopgrid">${list.map(it=>{
       const q=qty(it.id), mx=maxOf(it), full=q>=mx, pr=priceOf(it), can=!full&&S.coins>=pr;
       return `<div class="item ${q?'on':''}"><div class="em">${it.em}</div><div class="nm">${it.name}</div><div class="ds">${it.desc}</div>
-        <div class="pr">${pr!==it.price?`<s>🌰 ${it.price}</s>`:''}🌰 ${pr} <span class="cnt">· 보유 ${q}/${mx}개</span></div>
-        <button class="btn ${can?'green':'cream'}" data-buy="${it.id}" ${can?'':'disabled'}>${full?'✔ 최대 개수':(S.coins>=pr?(q?'하나 더 사기 (+1)':'구매하기'):'도토리 부족')}</button>
+        ${it.kind==='potion'?`<div class="pr"><span class="cnt">보유 ${q}/${mx}개 · 🏦 눈꽃 은행에서 대출로만 받을 수 있어요</span></div>`
+        :`<div class="pr">${pr!==it.price?`<s>🌰 ${it.price}</s>`:''}🌰 ${pr} <span class="cnt">· 보유 ${q}/${mx}개</span></div>
+        <button class="btn ${can?'green':'cream'}" data-buy="${it.id}" ${can?'':'disabled'}>${full?'✔ 최대 개수':(S.coins>=pr?(q?'하나 더 사기 (+1)':'구매하기'):'도토리 부족')}</button>`}
         ${q&&it.kind!=='potion'?`<button class="btn cream" data-eq="${it.id}" style="padding:6px 10px;font-size:13px">${has(it.id)?'해제하기':'착용/설치'}</button>`:''}${q&&it.kind==='potion'?'<div class="cnt">🧪 퀴즈 화면에서 마셔요</div>':''}
       </div>`;}).join('')}</div>
    </div>`,'wide');
@@ -2913,7 +2915,7 @@ function openShop(){
   document.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{ toggleEquip(b.dataset.eq); openShop(); });
 }
 function buy(id,btn){
-  const it=ITEMS.find(x=>x.id===id), pr=it&&priceOf(it); if(!it||qty(id)>=maxOf(it)||S.coins<pr) return;
+  const it=ITEMS.find(x=>x.id===id), pr=it&&priceOf(it); if(!it||it.kind==='potion'||qty(id)>=maxOf(it)||S.coins<pr) return;   // 시럽은 은행 대출로만
   S.coins-=pr; S.qty[id]=qty(id)+1; if(!S.owned.includes(id)) S.owned.push(id); save(); renderHud();
   const [x,y]=elCenter(btn); sfx('coin'); burst(x,y,{n:30,speed:240,g:200,life:1,size:4}); burst(x,y,{n:6,chars:[it.em],size:26,speed:180,g:200,life:1.2});
   if(it.kind!=='potion') equip(id);
@@ -3589,13 +3591,13 @@ function openHelp(){
     <li>🚨 <b>경제 위기</b>: 가끔 IMF 외환 위기 같은 경제 위기가 찾아와 <b>화폐 가치가 떨어져 가진 도토리가 절반으로 줄고</b>(🏆 도토리 랭킹에도 반영), 물건 값과 예금 이자가 올라요. 🥇 금 모으기로 함께 이겨 내요! 퀴즈 없이 <b>놀이로만</b> 도토리를 벌면 경제에 거품이 껴서 위기가 <b>더 자주</b> 와요.</li>
     <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
     <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 ${COIN_PER_Q}개씩 받고, 🔥 콤보 중에는 2배예요.</li>
-    <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 40 + 이자 🌰 10을 나중에 갚아요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
+    <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 ${LOAN.principal.toLocaleString()} + 이자 🌰 ${LOAN.interest.toLocaleString()}을 나중에 갚아요(빚은 🌰 ${LOAN.maxDebt.toLocaleString()}까지). 마법 시럽은 상점에서 팔지 않고 은행 대출로만 받을 수 있어요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
     <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>금융 퀴즈</b>도 은행 안에서 풀어요(미래 트리 광장을 통과하면 열려요).</li>
     <li>📈 <b>눈꽃 증권거래소</b>(왼쪽 아래 한강 가, 눈꽃 은행 금융 퀴즈를 통과하면 열려요):눈꽃전자·(주)눈꽃초코 같은 마을 회사의 <b>주식</b>을 원하는 주식 수만큼 사고팔아요. 📰 증시 소식을 읽고 <b>수요와 공급</b>에 따라 주가가 오를지 내릴지 예상해 싸게 사고 비싸게 팔아요. 내가 가진 진짜 도토리로 거래해서, 번 만큼 늘고 잃은 만큼 줄어요.</li>
     <li>☀️ <b>태양광 발전기</b>(상점): 마을에 설치하면 게임을 켜 둔 동안 전기를 만들어요. 5분 뒤 전기가 다 만들어지면 <b>⚡ 전기 팔기</b> 버튼(위쪽 메뉴나 발전기 위)을 눌러 1대에 🌰${SOLAR.earn}을 벌어요(3대까지). 팔기 전까지는 더 만들지 않아요!</li>
     <li>🌬️ <b>풍력 발전기</b>(상점, 🌰50000): 바람이 센 <b>산봉우리 위</b>에 세워져 날개를 돌려 전기를 만들어요. 끌어서 다른 봉우리로 옮길 수 있어요. 5분마다 <b>⚡ 전기 팔기</b>로 1대에 🌰${GENS.wind.earn}을 벌어요(3대까지).</li>
     <li>🛖 상점에서 <b>구매하기</b>를 눌러 아이템을 사고, 상점의 <b>착용/설치·해제하기</b> 버튼으로 꾸며요. <b>내 아이템</b> 탭에서 가진 것만 모아 볼 수 있어요.</li>
-    <li>🧪 <b>마법 시럽</b>을 사서 퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요.</li>
+    <li>🧪 <b>마법 시럽</b>을 눈꽃 은행에서 빌려서 퀴즈 화면에서 마시면 그 장소의 문제마다 힌트가 생겨요.</li>
     <li>마을 장식은 끌어서 옮길 수 있고, 누르면 효과가 나타나요. 캐릭터도 눌러 보세요!</li></ul>
     </div><div>
     <h3>🗺️ 학습 지도 (장소 ${STAGES.length}곳)</h3>
