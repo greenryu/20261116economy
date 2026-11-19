@@ -3166,12 +3166,43 @@ function parkOpen(){ return !S.creditDown; }   // 눈꽃랜드은 언제든지 �
 const PARK_BAN_MSG='🎡 신용도가 떨어져서 눈꽃랜드에 들어갈 수 없어요! 퀴즈 장소를 하나 통과하면(또는 은행 빚을 갚으면) 다시 들어갈 수 있어요.';
 function parkHead(sub,back){ return `<div class="panel-head"><div class="host monkey">${emo('🐵')}</div><h2>🎡 눈꽃랜드<div style="font-size:.6em;color:#6c8f78">${sub} · 내 도토리 🌰 <span id="pkCoin">${S.coins}</span></div></h2><button class="closeX" onclick="${back?'openPark()':'closeModal()'}">${back?'↩':'✕'}</button></div>`; }
 function parkCoins(n,el){ addCoins(n); econAdd('game',n); const c=$('pkCoin'); if(c) c.textContent=S.coins; if(el){ const [x,y]=elCenter(el); burst(x,y,{n:24,speed:220,g:200,life:1,size:4}); textPop(x,y-20,`+${n} 🌰`,'#fff6a8'); } sfx('coin'); }
+/* ---------- 🎟️ 눈꽃랜드 입장료 (자유이용권) ----------
+   🌰1000(퀴즈 1문제 값)을 내면 10분 동안 모든 놀이기구를 마음껏 탈 수 있어요.
+   경제 위기 때는 물건 값처럼 입장료도 올라요. 처음 한 번은 무료 체험! */
+const PARK_FEE=1000, PARK_PASS_MS=10*60*1000;
+const parkFee=()=>crisisOn()?PARK_FEE*CRISIS.price:PARK_FEE;
+const parkPassLeft=()=>Math.max(0,(S.parkPassUntil||0)-Date.now());
+function buyParkPass(free){
+  const fee=free?0:parkFee();
+  if(S.coins<fee){ sfx('locked'); toast(`🌰 도토리가 모자라요! 입장료는 🌰${fee.toLocaleString()}이에요. 퀴즈를 풀어서 도토리를 모아 와요.`); return; }
+  if(fee) S.coins-=fee;
+  S.parkPassUntil=Date.now()+PARK_PASS_MS; S.parkFreeUsed=true; save(); renderHud(); sfx('coin');
+  toast(free?'🎁 첫 입장은 무료! 10분 자유이용권이 생겼어요.':`🎟️ 🌰${fee.toLocaleString()}을 내고 10분 자유이용권을 샀어요!`);
+  openPark();
+}
+function parkBooth(){
+  const fee=parkFee(), free=!S.parkFreeUsed, can=free||S.coins>=fee;
+  openModal(parkHead('매표소')+`<div class="panel-body">
+    <div class="hostname">몽키 매니저</div>
+    <div class="bubble" style="cursor:default;min-height:0;margin-bottom:16px">🐵 어서 와! 눈꽃랜드는 <b>자유이용권</b>이 있어야 놀이기구를 탈 수 있어.<br>
+      🎟️ <b>10분 자유이용권 · 🌰${fee.toLocaleString()}</b>${crisisOn()?' <span style="color:#d9534f">(🚨 경제 위기로 값이 올랐어요)</span>':''}<br>
+      ${free?'🎁 <b>처음 온 친구는 한 번 무료</b>로 들어갈 수 있어!':'💡 입장료를 내고 도토리를 더 벌 수 있을지 잘 생각해 봐. 이게 바로 <b>기회비용</b>이야!'}</div>
+    <div class="rowbtns">
+      <button class="btn gold" ${can?'':'disabled'} onclick="buyParkPass(${free})">${free?'🎁 무료로 입장하기':`🎟️ 🌰${fee.toLocaleString()} 내고 입장`}</button>
+      <button class="btn green" onclick="closeModal()">🏡 다음에 올게요</button>
+    </div>
+    ${can?'':`<div style="margin-top:10px;color:#d9534f">🌰 도토리가 모자라요 (지금 🌰${S.coins.toLocaleString()}). 퀴즈를 풀고 다시 와요!</div>`}
+  </div>`);
+}
 function openPark(){
   if(!parkOpen()){ sfx('locked'); closeModal(); toast(PARK_BAN_MSG); return; }   // 신용도 하락 → 출입 금지
   if(parkCleanup){ parkCleanup(); parkCleanup=null; }
+  if(!parkPassLeft()){ parkBooth(); return; }   // 🎟️ 자유이용권이 없으면 매표소로
   if(!S.parkVisited){ S.parkVisited=true; save(); renderBuildings(); }
+  const pm=Math.ceil(parkPassLeft()/60000);
   openModal(parkHead('미니게임을 골라 보세요')+`<div class="panel-body">
     <div class="hostname">몽키 매니저</div>
+    <div class="gstat" style="margin-bottom:10px;text-align:center">🎟️ 자유이용권 남은 시간 약 <b>${pm}분</b><small>시간이 끝나도 타고 있던 놀이기구는 끝까지 할 수 있어요</small></div>
     <div class="bubble" style="cursor:default;min-height:0;margin-bottom:16px">🐵 어서 와, 눈꽃랜드이야! 공부하다 쉬고 싶을 때 언제든 놀러 와. 놀면서 배운 내용도 떠올리고 <b>도토리🌰</b>도 모을 수 있어. 어떤 놀이기구를 탈래?</div>
     <div class="parkmenu">
       <div class="gcard" data-g="block"><div class="gi">🧱</div><div class="gn">눈꽃 블록 쌓기</div><div class="gd">떨어지는 블록을 돌리고 옮겨서 가로줄을 꽉 채우면 줄이 사라져요!</div><div class="gr">한 줄마다 🌰250 · 최대 🌰5000</div></div>
@@ -3589,7 +3620,7 @@ function openHelp(){
     <li>🌰 <b>퀴즈가 도토리를 가장 많이 버는 방법!</b> 정답마다 🌰${COIN_PER_Q} (🔥${COMBO_AT}연속 콤보부터 🌰${COIN_PER_Q*2}), 첫 통과 보너스 🌰${FIRST_CLEAR_BONUS}, 만점 보너스 🌰${PERFECT_BONUS}을 받아요.</li>
     <li>📚 <b>복습하면 더 많이!</b> 이미 통과한 장소를 다시 풀면 정답 도토리가 <b>${REVIEW_MULT}배</b>(🌰${COIN_PER_Q*REVIEW_MULT}, 콤보 중 🌰${COIN_PER_Q*REVIEW_MULT*2})이고, 다시 통과하면 복습 보너스 🌰${REVIEW_BONUS}을 받아요.</li>
     <li>🚨 <b>경제 위기</b>: 가끔 IMF 외환 위기 같은 경제 위기가 찾아와 <b>화폐 가치가 떨어져 가진 도토리가 절반으로 줄고</b>(🏆 도토리 랭킹에도 반영), 물건 값과 예금 이자가 올라요. 🥇 금 모으기로 함께 이겨 내요! 퀴즈 없이 <b>놀이로만</b> 도토리를 벌면 경제에 거품이 껴서 위기가 <b>더 자주</b> 와요.</li>
-    <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
+    <li>🎡 <b>눈꽃랜드</b>은 언제든지 들어갈 수 있어요. 입장료 🌰${PARK_FEE.toLocaleString()}을 내면 <b>10분 자유이용권</b>을 받아요(첫 입장은 무료, 경제 위기 때는 값이 올라요). 블록 쌓기, 행운 룰렛 퀴즈(10분에 5번까지), 겨울 카드 뒤집기, 🔔 눈꽃 종치기로 도토리를 더 모아요.</li>
     <li>⭐ <b>점수</b>: OX(쉬움) 10점 · 객관식(보통) 15점 · 순서·분류(어려움) 20점. <b>⚡ 빨리 맞히면 +50%</b>(OX 7초·객관식 12초·순서·분류 25초 안), <b>🔥 3문제 연속 정답부터 점수 ×2</b>! 🌰 도토리는 점수와 따로 정답마다 ${COIN_PER_Q}개씩 받고, 🔥 콤보 중에는 2배예요.</li>
     <li>🐷 <b>눈꽃 은행</b>에서 마법 시럽을 <b>대출</b>받을 수 있어요. 원금 🌰 ${LOAN.principal.toLocaleString()} + 이자 🌰 ${LOAN.interest.toLocaleString()}을 나중에 갚아요(빚은 🌰 ${LOAN.maxDebt.toLocaleString()}까지). 마법 시럽은 상점에서 팔지 않고 은행 대출로만 받을 수 있어요. 빚이 있으면 은행원 🐷 꿀꿀이가 <b>아무 때나</b>(마을에서도, 눈꽃랜드 게임 중에도) 독촉하러 찾아와요! 연체(다음에 갚기)를 2번 하면 화가 나서 찾아오고, <b>3번째 연체하면 💸 파산</b>해요. 파산하면 30초 동안 화면이 흑백이 되고, 빚은 없어지지만 <b>도토리와 아이템을 모두 압류</b>당하고 신용도가 바닥이 돼요(대출·🎡 눈꽃랜드 금지). 퀴즈 장소를 하나 통과하면 신용도가 회복돼요.</li>
     <li>💰 <b>눈꽃 은행 예금</b>: 도토리를 맡기면 ${DEPOSIT.mins}분 뒤 <b>이자 ${DEPOSIT.rate*100}%</b>를 붙여 돌려받아요(먼저 찾으면 이자 없음). <b>금융 퀴즈</b>도 은행 안에서 풀어요(미래 트리 광장을 통과하면 열려요).</li>
